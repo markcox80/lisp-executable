@@ -1,0 +1,5 @@
+*~
+/lisp-executable.html
+*.fasl
+*.fas
+*.DS_Store

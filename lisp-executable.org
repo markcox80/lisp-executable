@@ -1,0 +1,415 @@
+#+TITLE: Defining Command Line Programs in Common Lisp
+#+AUTHOR: Mark Cox
+#+EMAIL: (make-email-address "markcox80" :at "gmail.com")
+#+OPTIONS: author:nil email:nil
+
+The lisp-executable library provides a language for defining and
+creating programs that can be used from the Unix shell instead of the
+Lisp read-eval-print-loop (REPL).
+
+* Introduction
+The goal of this Common Lisp library is to provide a convenient
+abstraction to creating executable programs that can interact easily
+with other tools that accompany the Unix shell. The abstraction should
+be familiar and straight forward to use.
+
+The library consists of
+- a language for defining programs that accept command line arguments.
+- the ability to automatically generate an executable for a defined
+  program.
+- an ASDF:COMPONENT so that executables can be built using an
+  ASDF:OPERATION.
+
+The library provides two different styles of passing command line
+arguments to the defined program
+- [[* Defining a program][Program]] :: A program which accepts options and arguments with
+             options appearing anywhere on the command line.
+- [[Dispatcher]] :: A program which dispatches to other programs. Example
+                software of this style would be ~xargs~, ~git~ and
+                ~svn~.
+
+Lastly, the automatic executable creation relies heavily on ASDF. It
+is assumed that all programs are declared within an ASDF system.
+
+Automatic executable creation has been implemented for [[http://www.sbcl.org][SBCL]], [[http://ecls.sourceforge.net/][ECL]],
+[[http://www.clisp.org/][CLISP]], [[http://ccl.clozure.com/][CCL]] and [[http://www.cons.org/cmucl/][CMUCL]].
+
+* Getting Started Quickly
+- Create an ASDF system to manage your program. 
+  #+begin_src lisp
+  ;; File lisp-executable-example.asd
+  
+  (eval-when (:compile-toplevel :load-toplevel :execute)
+    (asdf:load-system "lisp-executable"))
+  
+  (defsystem lisp-executable-example
+    :components ((:modules "example/"
+                           :serial t
+                           :components ((:file "main")
+                                        (lisp-executable:executable "example-program" :program ("LISP-EXECUTABLE.EXAMPLE" "EXAMPLE-PROGRAM"))))))  
+  #+end_src
+
+- Create ~main.lisp~ and specify your program.
+  #+begin_src lisp
+    ;; File example/main.lisp
+  (defpackage "LISP-EXECUTABLE.EXAMPLE"
+    (:use "COMMON-LISP"
+          "LISP-EXECUTABLE"))
+  (in-package "LISP-EXECUTABLE.EXAMPLE")
+  
+  (define-program example-program (&options help)
+    (cond
+      (help
+       (format t "Help has arrived."))
+      (t
+       (format t "You are doomed.")))
+    (terpri))
+  #+end_src
+- Create the executable.
+  #+begin_src lisp
+    (asdf:oos 'lisp-executable:create-executables-op "lisp-executable-example")
+  #+end_src
+- Invoke from the command line.
+  #+begin_example
+    $ example/example-program
+    You are doomed.
+    $ example/example-program --help
+    Help has arrived.
+    $
+  #+end_example
+  
+[TABLE-OF-CONTENTS]
+* Design
+The API is separated in to two parts (i) the definition of the command
+line arguments the program accepts (ii) the implementation on how to
+associate command line arguments to the program argument symbols.
+
+The following terms are used in this document to describe the various
+components of programs that accept command line arguments:
+- Command line program :: The program that is being invoked from the
+     command line.
+- Command line arguments :: The list of arguments being passed to the
+     program.
+- Program option (or option) :: A command line argument that modifies
+                    how the command line program performs its
+                    task. Program options can accept parameters.
+
+* Defining a Program
+The first type of command line program introduced is one where the
+program options can appear at any position within the command line
+arguments. For example, the following two invocations of the command
+line program ~process-file~ are equivalent
+#+begin_example
+$ process-file input output -v
+$ process-file -v input output
+#+end_example
+
+To define this type of program you use the macro
+~LISP-EXECUTABLE:DEFINE-PROGRAM~.
+#+begin_src lisp
+(defmacro define-program (program-name program-lambda-args &body body))
+#+end_src
+The symbol ~PROGRAM-NAME~ is used to identify the command line
+program. The format of ~PROGRAM-LAMBDA-ARGS~ is presented in the next
+section. Finally, the code that uses the command line arguments is
+placed in ~BODY~.
+** Program Lambda Args
+The type of command line arguments accepted by the program is
+encapsulated within the ~PROGRAM-LAMBDA-ARGS~ form. The different
+types are
+- Option :: Option arguments change the behaviour of the command line
+            program. 
+- Argument :: An argument which is not an option.
+- Others :: A collection of non option arguments.
+
+*** Options
+Within the option argument type there are three subtypes depending on
+whether the declared option accepts a parameter:
+- No parameter option :: On or off switch. e.g. ~--verbose~
+- Non mandatory parameter option :: The option can appear with or without an
+     argument. e.g. ~--debug~ and ~--debug=high~
+- Mandatory parameter option :: The option must appear with an
+     argument. e.g. ~--exclusion-list=file.txt~
+
+It should be noted that the manner in which options and their
+parameters are read from the command line is determined by the
+~*COMMAND-LINE-ARGUMENTS-READER*~ object. 
+
+An example of declaring the different types of options is as follows
+#+begin_src lisp
+(define-program program (&options help (debug-level debug-level-value 1) (file file-value)))
+#+end_src
+Notice that all option command line arguments declared in a
+~PROGRAM-LAMBDA-ARGS~ must be proceeded with the symbol
+~&OPTIONS~. The ~PROGRAM~ example can accept three options ~HELP~,
+~DEBUG-LEVEL~ and ~FILE~. The value of these symbols throughout the
+body of ~PROGRAM~ can be either non ~NIL~ or ~NIL~ depending on
+whether the option was found on the command line.
+
+The symbol ~HELP~ is a no parameter option. The option ~DEBUG-LEVEL~
+is a non mandatory parameter option. If a parameter to ~DEBUG-LEVEL~
+is found on the command line, the value of this parameter is assigned
+to the symbol ~DEBUG-LEVEL-VALUE~. If no parameter is found, then
+~DEBUG-LEVEL-VALUE~ is bound to ~1~. The option ~FILE~ is a mandatory
+parameter option with its parameter value assigned to the symbol
+~FILE-VALUE~.
+
+**** Converting to other types
+For options that are parameterized, the parameter value read from the
+command line will be of type ~STRING~ by default. Automatic conversion
+to other types can be specified using the ~CONVERSION-FUNCTION~
+declaration expression.
+#+begin_src lisp
+(define-program program (&options (file file-value) (debug-level debug-level-value 1) help)
+  (declare (conversion-function (integer 0 3) debug-level)))
+#+end_src
+User supplied conversion functions can be used by simply using the
+symbol that names the function. For more information please see the
+section on [[*Conversion Functions][conversion functions]].
+
+**** Option Identifiers
+In the above example, the symbol ~FILE~ will be set using the string
+~--file~ on the command line if it is present.  Sometimes it is
+convenient to specify other strings which are equivalent identifiers
+for the same option. To accommodate this behaviour the declaration
+~IDENTIFIERS~ is provided.
+#+begin_src lisp
+  (define-program program (&options (file file-value) (debug-level debug-level-value 1) help)
+    (declare (identifiers file "file" #\f)
+             (identifiers help "help" #\h)))
+#+end_src
+Valid identifiers are strings and characters.
+
+Again, it is up to the ~*COMMAND-LINE-ARGUMENTS-READER*~ object to
+identify options among the command line arguments.
+
+**** Multiple encounters
+The last part of option declaration is specifying what to do when the
+same option is found more than once on the command line. This
+behaviour can be customised using the declaration
+~REDUCING-POLICY~.
+#+begin_src lisp
+(define-program program (&options (file file-value) (output-file output-file-value))
+  (declare (reducing-policy append-policy file output-file)))
+#+end_src
+By default, if an option appears more than once, an error is
+produced. However, a number of other policies are provided
+- ~TOGGLE-POLICY~    :: Negates the previous value. Useful for no parameter options.
+- ~COUNT-POLICY~     :: Count the number of times the switch appears on the command line.
+- ~USE-FIRST-POLICY~ :: Use the first value read from the command line.
+- ~USE-LAST-POLICY~  :: Use the last value read from the command line.
+- ~APPEND-POLICY~    :: Concatenates values to form a list.
+- ~ERROR-POLICY~     :: Signals an error.  
+
+User supplied reducing functions can be used by specifying the symbol
+name of the function. The function supplied must adhere to the
+following policies: 
+- Accept 0 arguments :: The value returned will be the value used when the argument is NOT present on the command line. (Only for no parameter option arguments)
+- Accept 1 argument  :: The first time the option argument is encountered on the command line. (Not applicable for no parameter option arguments)
+- Accept 2 arguments :: When the option argument is encountered again on the command line.
+
+*** Arguments
+Anything found on the command line that is not an option, is an
+argument. All argument declarations occur after the ~&ARGUMENTS~
+symbol.
+#+begin_src lisp
+(define-program program (&options help &arguments filename)
+  (cond 
+    (help
+     (print-help))
+    (filename
+     (perform-action filename))
+    (t
+     (print-help)
+     (error "Invalid usage."))))
+#+end_src
+The example above defines an argument ~FILENAME~. The value of
+argument symbols will be either ~NIL~ or non ~NIL~ depending on
+whether the argument is present on the command line or not.
+
+By default, the value of argument symbols will be of type
+string. Automatic conversion to other types can be performed using the
+~CONVERSION-FUNCTION~ declaration.
+#+begin_src lisp
+(define-program program (&options help &arguments how-many-iterations)
+  (declare (conversion-function integer how-many-iterations)))
+#+end_src
+
+*** Other Arguments
+Other arguments accumulate all non processed command line arguments
+passed to the program.
+#+begin_src lisp
+(define-program program (&options help &arguments how-many-iterations &others files))
+#+end_src
+String conversion for rest arguments can be specified using
+the ~CONVERSION-FUNCTION~.
+
+* Defining a Dispatcher
+A dispatcher program is one in which the operation to be performed is
+determined from the command line. For example, the program ~git~ has a
+number of commands which are all accessed via ~git~
+#+begin_example
+$ git init
+$ git status
+$ git reset
+#+end_example
+and so on. The goal of the dispatcher program is to easily define
+these types of programs. 
+
+The key difference between a dispatcher program and the program
+defined in the previous section is in the handling of the command line
+options. Any option occurring before an argument is an option to the
+dispatcher and any option occurring after an argument is a option to
+the dispatched program.
+
+An example dispatcher program can be defined as follows
+#+begin_src lisp
+  (define-dispatcher-program git (&options help &arguments command &others others)
+    (cond
+      ((or help (null command))
+       (print-usage))
+      (command
+       (alexandria:switch (command :test #'string-equal)
+         ("init"
+          (program-apply 'git/init others))
+         ("commit"
+          (program-apply 'git/commit others))
+         (t
+          (error "Don't know how to perform command ~A" command))))))
+#+end_src
+
+The declarations ~IDENTIFIERS~, ~CONVERSION-FUNCTION~ and
+~REDUCING-POLICY~ can be used within the ~DEFINE-DISPATCHER-PROGRAM~
+form as well.
+
+* Testing a Program
+A defined program can be tested by using the functions
+~PROGRAM-FUNCALL~ and ~PROGRAM-APPLY~. The arguments passed to these
+functions must be of type string. The identification of options and
+non option arguments is handled by the object bound to
+~*COMMAND-LINE-ARGUMENTS-READER*~.
+
+#+begin_src lisp
+(define-program my-program (&options help (file file-value) &arguments what-to-do)
+  (list help file-value what-to-do))
+
+(setf *command-line-arguments-reader* 'gnu-style)
+
+(program-funcall 'my-program "hello-there")
+; => (NIL NIL "hello-there")
+(program-funcall 'my-program "--help")
+; => (T NIL NIL)
+(program-funcall 'my-program "--file=good-program")
+; => (NIL "good-program" NIL)
+#+end_src
+
+The function ~PROGRAM-APPLY~ is to ~PROGRAM-FUNCALL~ as the Common
+Lisp function ~APPLY~ is to ~FUNCALL~.
+
+If you want to test the program without considering how options are
+read from the command line, the functions ~PROGRAM-FUNCALL-WITH-ALIST~
+and ~PROGRAM-FUNCALL-WITH-PLIST~ can be used.
+#+begin_src lisp
+  (program-funcall-with-alist 'my-program '((help t)))
+  (program-funcall-with-plist 'my-program 'help t)
+  
+  (program-funcall-with-alist 'my-program '((file t) (file-value "input.txt")))
+  (program-funcall-with-plist 'my-program '(file t file-value "input.txt"))
+#+end_src
+* Reading the command line
+The object bound to the symbol ~*COMMAND-LINE-ARGUMENTS-READER*~
+represents the method in which the command line arguments are
+identified. As of writing, ~GNU-STYLE~ is the only implemented style
+of identifying options and arguments from strings.
+
+The GNU style uses the following templates for options
+- ~-h~ :: A short option with identifier ~h~.
+- ~--help~ :: A long option with identifier ~help~.
+- ~--debug=1~ :: A long option with identifier ~debug~ and parameter ~1~. 
+- ~--file input.txt~ :: A long option with identifier ~file~ and parameter ~input.txt~. Valid for mandatory parameter options only.
+- ~-f input.txt~ :: A short option with identifier ~f~ and parameter ~input.txt~. Valid for mandatory parameter options only.
+- ~--~ :: Terminate option processing. i.e. All options found after this delimiter will be treated as non option arguments.
+
+* Generating a program
+One of the features of the ~LISP-EXECUTABLE~ library is that it is
+possible to generate an executable from a command line program
+definition. 
+
+The function provided to do this is ~CREATE-EXECUTABLE~.
+#+begin_src lisp
+  (define-program my-program (&options help)
+    (cond
+      (help
+       (format t "Help has arrived."))
+      (t
+       (format t "You are doomed."))))
+  
+  (create-executable 'my-program "/tmp/my-program" :asdf-system "system-containing-my-program")
+#+end_src
+
+The keyword ~:asdf-system~ is important as ~CREATE-EXECUTABLE~ uses
+this argument to initialize a new lisp machine in order to create the
+program. The need for a separate process is that the machine specific
+function equivalent to ~SAVE-LISP-MACHINE~ on some lisps actually
+kills the currently executing process. e.g. ~SB-EXT:SAVE-LISP-AND-DIE~
+on SBCL.
+* ASDF Build Integration
+The building of an executable can also be specified in the ASDF system
+definition by using the ~LISP-EXECUTABLE:EXECUTABLE~ ASDF component.
+#+begin_src lisp
+(eval-when (:compile-toplevel :load-toplevel :execute)
+  (asdf:load-system "lisp-executable"))
+
+(defsystem lisp-executable-example
+  :author "Mark Cox"
+  :serial t
+  :components ((:modules "example/"
+			 :serial t
+			 :components ((:file "main")
+				      (lisp-executable:executable "example-program" :program ("LISP-EXECUTABLE.EXAMPLE" "EXAMPLE-PROGRAM"))))))
+#+end_src
+
+The keyword argument ~:PROGRAM~ contains the symbol path to the
+program. From the above example, an executable will be created in the
+directory "example/" with the name "example-program". When the
+executable is executed, it will invoke the program
+~LISP-EXECUTABLE-EXAMPLE::EXAMPLE-PROGRAM~.
+
+To build the executable, you perform the
+~LISP-EXECUTABLE:CREATE-EXECUTABLES-OP~ operation on the system. 
+#+begin_src lisp
+(asdf:oos 'lisp-executable:create-executables-op "lisp-executable-example")
+#+end_src
+* Conversion Functions
+As mentioned previously, you can specify a function to convert the
+string found on the command line to its expected type within the
+program. For convenience, there are some built in conversion functions
+that use the lisp reader with type checking and a coercion. These are
+- ~CL:NUMBER~ 
+- ~CL:REAL~ 
+- ~CL:FLOAT~
+- ~CL:SINGLE-FLOAT~
+- ~CL:DOUBLE-FLOAT~
+- ~CL:RATIONAL~
+- ~CL:INTEGER~
+- ~CL:FIXNUM~
+- ~CL:RATIO~
+
+The compound type specifiers for the above can also be specified, for
+example, the argument ~HOW-MANY-TIMES~ should be greater than equal to
+~0~.
+#+begin_src lisp
+  (define-program counter (&options (how-many-times how-many-times-value))
+    (declare (conversion-function (integer 0) how-many-times)))
+#+end_src
+
+Another special built in conversion function is ~CL:KEYWORD~, which
+converts the string in to a keyword
+#+begin_src lisp
+  (define-program file-processor (&options (if-exists if-exists-value))
+    (declare (conversion-function keyword if-exists)
+             (type (member nil :error :supersede) if-exists-value)))
+#+end_src
+
+
+Author: Mark Cox ~(make-email-address "markcox80" :at "gmail.com")~
