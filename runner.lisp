@@ -4,7 +4,7 @@
   (asdf:oos 'lisp-executable:create-executables-op "lisp-executable-example")
   
   #+:ecl (ext:quit 0)
-  #+:sbcl (sb-ext:quit :unix-status 0)
+  #+:sbcl (sb-ext:exit :code 0)
   #+:ccl (ccl::quit 0)
   #+:cmucl (extensions:quit)
   #+:clisp (ext:quit))

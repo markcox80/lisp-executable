@@ -64,7 +64,7 @@
   (rest sb-ext:*posix-argv*))
 
 (defmethod lisp-machine-exit (exit-status)
-  (sb-ext:quit :unix-status exit-status))
+  (sb-ext:exit :code exit-status))
 
 (defmethod executable-files (output-file)
   (list output-file))
