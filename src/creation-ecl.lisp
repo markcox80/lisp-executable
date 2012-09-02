@@ -53,23 +53,35 @@
 
 (defmethod save-executable-using-code-and-die (code output-file &rest args &key asdf-system (if-exists :error) &allow-other-keys)
   (declare (ignore args))
-  (unwind-protect
-       (let ((fn (first (asdf:make-build asdf-system
-					 :type :program 
-					 :monolithic t
+  (labels ((worker ()
+	     (let ((fn (first (asdf:make-build asdf-system
+					       :type :program 
+					       :monolithic t
 
-					 ;; turning off verbosity is needed to stop the output of the LOAD call in the prebuilt-asdf system.
-					 ;; there is probably a cleaner way to do this.
-					 :prologue-code '(setf 
-							  *compile-verbose* nil
-							  *load-verbose* nil)
-					 :epilogue-code `(progn
-							   (setf *compile-verbose* ,*compile-verbose*
-								 *load-verbose* ,*load-verbose*)
-							   ,code)))))
-	 (alexandria:copy-file fn output-file :if-to-exists if-exists)
-	 (ext:run-program "/bin/chmod" (list "+x" (namestring output-file)) :input nil :output t :error :output :wait t))
-    (ext:quit 0)))
+					       ;; turning off verbosity is needed to stop the output of the LOAD call in the prebuilt-asdf system.
+					       ;; there is probably a cleaner way to do this.
+					       :prologue-code '(setf 
+								*compile-verbose* nil
+								*load-verbose* nil)
+					       :epilogue-code `(progn
+								 (setf *compile-verbose* ,*compile-verbose*
+								       *load-verbose* ,*load-verbose*)
+								 ,code)))))
+	       (alexandria:copy-file fn output-file :if-to-exists if-exists)
+	       (multiple-value-bind (stream exit-code process) (ext:run-program "/bin/chmod" (list "+x" (namestring output-file))
+										:input nil
+										:output t
+										:error :output
+										:wait t)
+		 (declare (ignore stream))
+		 (assert (zerop exit-code))
+		 (assert (eql :exited (ext:external-process-status process)))))))
+    (handler-case (progn
+		    (worker)
+		    (ext:quit 0))
+      (error (c)
+	(format *error-output* "~&Error occurred during SAVE-EXECUTABLE-USING-CODE-AND-DIE.~%~A" c)
+	(ext:quit 1)))))
 
 (defmethod command-line-arguments ()
   (loop
