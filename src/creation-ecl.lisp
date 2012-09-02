@@ -80,7 +80,7 @@
 		    (worker)
 		    (ext:quit 0))
       (error (c)
-	(format *error-output* "~&Error occurred during SAVE-EXECUTABLE-USING-CODE-AND-DIE.~%~A" c)
+	(format *error-output* "~&Error occurred during SAVE-EXECUTABLE-USING-CODE-AND-DIE.~%~A~%" c)
 	(ext:quit 1)))))
 
 (defmethod command-line-arguments ()
