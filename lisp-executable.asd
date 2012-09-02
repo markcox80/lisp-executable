@@ -40,7 +40,8 @@
 
 				     (:file "creation")
 				     #+:sbcl (:file "creation-sbcl")
-				     #+:ecl  (:file "creation-ecl")
+				     #+:eql (:file "creation-eql")
+				     #+(and :ecl (not :eql))  (:file "creation-ecl")
 				     #+:ccl  (:file "creation-ccl")
 				     #+:clisp (:file "creation-clisp")
 				     #+:cmucl (:file "creation-cmucl")
