@@ -32,7 +32,7 @@
   :description "Example program containing an executable."
   :serial t
   :depends-on (lisp-executable)
-  :components ((:module "example"
+  :components ((:module "examples"
 			:serial t
 			:components ((:file "main")
 				     (lisp-executable:executable "example-program" :program ("LISP-EXECUTABLE.EXAMPLE" "EXAMPLE-PROGRAM"))))))
