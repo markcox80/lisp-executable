@@ -57,16 +57,7 @@
 	     (let ((fn (first (asdf:make-build asdf-system
 					       :type :program 
 					       :monolithic t
-
-					       ;; turning off verbosity is needed to stop the output of the LOAD call in the prebuilt-asdf system.
-					       ;; there is probably a cleaner way to do this.
-					       :prologue-code '(setf 
-								*compile-verbose* nil
-								*load-verbose* nil)
-					       :epilogue-code `(progn
-								 (setf *compile-verbose* ,*compile-verbose*
-								       *load-verbose* ,*load-verbose*)
-								 ,code)))))
+					       :epilogue-code code))))
 	       (alexandria:copy-file fn output-file :if-to-exists if-exists)
 	       (multiple-value-bind (stream exit-code process) (ext:run-program "/bin/chmod" (list "+x" (namestring output-file))
 										:input nil
