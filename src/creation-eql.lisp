@@ -65,16 +65,16 @@
 	(format out ", " :stream out))
       (format out "0 }"))))
 
-(defun generate-main-cpp (pathname init-name code &key (if-exists :error))
-  (let ((init-function (format nil "init_lib_~A" init-name)))
-    (with-open-file (out pathname :direction :output :if-exists if-exists)
-      (format out "
+(defun generate-main-cpp (pathname init-names code &key (if-exists :error))
+  (with-open-file (out pathname :direction :output :if-exists if-exists)
+    (format out "
 #include <ecl/ecl.h>
 #include <QtGui/QApplication>
 #include \"eql.h\"
 ")
-      (format out "extern \"C\" void ~A(cl_object);~%" init-function)
-      (format out "
+    (dolist (init-name init-names)
+      (format out "extern \"C\" void ~A(cl_object);~%" init-name))
+    (format out "
 
 int
 catch_all_qexec()
@@ -97,19 +97,22 @@ main(int argc, char **argv)
 
   EQL eql;
 ")
+    #-(and)
+    (progn
       (format out "  char initialisation_text[] = ~A;~%" (format-code (let ((fn (merge-pathnames ".eclrc" (user-homedir-pathname))))
 									`(when (probe-file ,fn)
 									   (load ,fn)))))
       (format out "  // printf(\"%s\\n\",initialisation_text);~%")
-      (format out "  eql.eval(initialisation_text);~%")
-      (format out "  read_VV(OBJNULL, ~A);~%" init-function)
-      (format out "  char text[] = ~A;~%" (format-code code))
-      (format out "  // printf(\"%s\\n\",text);~%")
-      (format out "  eql.eval(text);~%")
-      (format out "
+      (format out "  eql.eval(initialisation_text);~%"))
+    (dolist (init-name init-names)
+      (format out "  read_VV(OBJNULL, ~A);~%" init-name))
+    (format out "  char text[] = ~A;~%" (format-code code))
+    (format out "  // printf(\"%s\\n\",text);~%")
+    (format out "  eql.eval(text);~%")
+    (format out "
 
   return catch_all_qexec();
-}"))))
+}")))
 
 (eval-when (:compile-toplevel :load-toplevel :execute)
   (defun do-with-temporary-file (type default-pathname function)
@@ -139,14 +142,28 @@ main(int argc, char **argv)
 (defmethod save-executable-using-code-and-die (code output-file &rest args &key asdf-system (if-exists :error) &allow-other-keys)
   (declare (ignore args))
   (labels ((worker ()	     
-	     (with-temporary-file (main-object "o" output-file)
-	       (with-temporary-file (main-cpp "cpp" output-file)
-		 (let ((lib-fn (first (asdf:make-build asdf-system :type :lib :monolithic t))))
-		   (generate-main-cpp main-cpp
-				      (format nil "~A_MONO" (substitute #\_ #\- (string-upcase asdf-system))) code
-				      :if-exists :supersede)
-		   (compile-c++-program main-object main-cpp)
-		   (link-c++-program output-file (list main-object lib-fn)))))))
+	     (let* ((prebuilt-components (asdf::gather-components 'asdf::lib-op (asdf:find-system asdf-system)
+							       :filter-type 'asdf::prebuilt-system))
+		    (prebuilt-static-libraries (mapcan #'(lambda (x)
+							   (mapcar #'truename (asdf::output-files (car x) (cdr x))))
+						       prebuilt-components))
+		    (prebuilt-initialisation-names (mapcar #'(lambda (x)
+							       (let ((library-pathname (asdf::prebuilt-system-static-library (cdr x))))
+								 (c::guess-init-name library-pathname (c::guess-kind library-pathname))))
+							   prebuilt-components)))
+	       
+	       (with-temporary-file (main-object "o" output-file)
+		 (with-temporary-file (main-cpp "cpp" output-file)
+		   (let ((lib-fn (first (asdf:make-build asdf-system :type :lib :monolithic t))))
+		     (generate-main-cpp main-cpp
+					(append prebuilt-initialisation-names
+						(list (format nil "init_lib_~A_MONO" (substitute #\_ #\- (string-upcase asdf-system)))))
+					code
+					:if-exists :supersede)
+		     (alexandria:copy-file main-cpp "/tmp/test.cpp" :if-to-exists :supersede)
+		     (compile-c++-program main-object main-cpp)
+		     (link-c++-program output-file (append (list main-object lib-fn)
+							   prebuilt-static-libraries))))))))
     (handler-case (progn
 		    (worker)
 		    (eql:qquit 0))
