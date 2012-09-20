@@ -56,6 +56,8 @@
   (%posix-kill (ext:external-process-pid lisp-machine) 15))
 
 (defun format-code (code)
+  "Return valid constant C string constant that is the output
+of (PPRINT CODE)."
   (let ((string (with-output-to-string (out)
 		  (pprint code out))))
     (with-output-to-string (out)
@@ -66,6 +68,19 @@
       (format out "0 }"))))
 
 (defun generate-main-cpp (pathname init-names code &key (if-exists :error))
+  "Generate a C++ file at PATHNAME that initialises ECL, EQL and the
+ECL compiled static libraries that will be eventually linked with this
+C++ file. Once initialised, the lisp CODE is executed.
+
+The INIT-NAMES parameter is a list containing strings. Each string is
+the name of the function that is to be invoked by read_VV.
+
+The value of IF-EXISTS can be either :ERROR or :SUPERSEDE."
+  (declare (type pathname pathname)
+	   (type list init-names)
+	   (type (or atom list) code)
+	   (type (member :error :supersede) if-exists))
+  (assert (every #'stringp init-names))
   (with-open-file (out pathname :direction :output :if-exists if-exists)
     (format out "
 #include <ecl/ecl.h>
@@ -116,6 +131,10 @@ main(int argc, char **argv)
 
 (eval-when (:compile-toplevel :load-toplevel :execute)
   (defun do-with-temporary-file (type default-pathname function)
+    "Call FUNCTION with a temporary pathname with a name constructed
+from DEFAULT-PATHNAME. The pathname-type of the temporary file is
+TYPE. The pathname-directory of the temporary file is the same as the
+directory found in DEFAULT-PATHNAME."
     (labels ((random-pathname ()
 	       (make-pathname :name (with-output-to-string (out)
 				      (write-string (pathname-name default-pathname) out)
@@ -136,6 +155,7 @@ main(int argc, char **argv)
 	  (delete-file pathname)))))
 
   (defmacro with-temporary-file ((var type template) &body body)
+    "A more convenient method of calling DO-WITH-TEMPORARY-FILE."
     `(do-with-temporary-file ,type ,template #'(lambda (,var)
 						 ,@body))))
 
@@ -183,6 +203,8 @@ main(int argc, char **argv)
 ;; C++, ECL and Qt stuff
 
 (defun which/all (program)
+  "Obtain the pathnames found by the unix command line program
+  \"which\" when used to search for PROGRAM."
   (multiple-value-bind (stream exit-code process) (ext:run-program "/usr/bin/which" (list program)
 								  :output :stream
 								  :error :output)
@@ -196,6 +218,8 @@ main(int argc, char **argv)
 	 (parse-namestring line)))))
 
 (defun which (program)
+  "Return the first item obtained by the unix command line when
+searching for PROGRAM."
   (let ((args (which/all program)))
     (case (length args)
       (0
@@ -207,10 +231,13 @@ main(int argc, char **argv)
        (first args)))))
 
 (defun Qt-prefix ()
+  "Return the prefix to the Qt installation."
   (let ((qmake-path (which "qmake")))
     (merge-pathnames (make-pathname :directory (butlast (pathname-directory qmake-path))))))
 
 (defun Qt-include-pathnames ()
+  "Return the directories that contain all Qt header files needed by
+EQL."
   (labels ((subdir (&rest args)
 	     (merge-pathnames (make-pathname :directory `(:relative ,@args)) (Qt-prefix))))    
     (list (subdir "include")
@@ -218,10 +245,12 @@ main(int argc, char **argv)
 	  (subdir "include" "QtGui"))))
 
 (defun Qt-library-directory ()
+  "Return the directory containing all Qt library files."
   (merge-pathnames (make-pathname :directory '(:relative "lib"))
 		   (qt-prefix)))
 
 (defun deconstruct-ecl-config-output (line)
+  "Parse the output of the ECL script \"ecl-config\""
   (let ((rv nil))
     (labels ((whitespace-character-p (character)
 	       (find character '(#\Space) :test #'char=))
@@ -239,18 +268,23 @@ main(int argc, char **argv)
       (nreverse rv))))
 
 (defun ecl-c-flags ()
+  "Obtain the c-flags used by ECL. These flags are obtained from the
+  program \"ecl-config\"."
   (multiple-value-bind (stream exit-code process) (ext:run-program "ecl-config" '("--cflags") :output :stream :error :output)
     (assert (zerop exit-code))
     (assert (eql :exited (ext:external-process-status process)))
     (deconstruct-ecl-config-output (read-line stream))))
 
 (defun ecl-ld-flags ()
+  "Obtain the ld-flags used by ECL. These flags are obtained from the
+  program \"ecl-config\"."
   (multiple-value-bind (stream exit-code process) (ext:run-program "ecl-config" '("--ldflags") :output :stream :error :output)
     (assert (zerop exit-code))
     (assert (eql :exited (ext:external-process-status process)))
     (deconstruct-ecl-config-output (read-line stream))))
 
 (defun default-c++-compiler ()
+  "Try and find a C++ compiler."
   (labels ((try (path)
 	     "Try PATH to see if it exists. If so return PATH."
 	     ;; Do not return the output of PROBE-FILE as some
@@ -263,15 +297,19 @@ main(int argc, char **argv)
 	(error "Unable to find C++ compiler."))))
 
 (defun default-c++-linker ()
+  "Try and find a C++ linker."
   (default-c++-compiler))
 
 (defun default-eql-cxx-flags ()
+  "Return the flags needed to compile C++ programs that use EQL and
+ECL."
   (labels ((include-argument (pathname)
 	     (format nil "-I~A" (namestring (truename pathname)))))
     (append (mapcar #'include-argument (qt-include-pathnames))
 	    (ecl-c-flags))))
 
 (defun default-eql-ld-flags ()
+  "Return the flags needed to link C++ programs that use EQL and ECL."
   (labels ((libdir-argument (pathname)
 	     (format nil "-L~A" (namestring (truename pathname)))))
     (append (list (libdir-argument (qt-library-directory))
@@ -281,6 +319,7 @@ main(int argc, char **argv)
 	    (ecl-ld-flags))))
 
 (defun read-entire-stream (stream)
+  "Return the entire contents of STREAM."
   (let ((eof-char '#:eof-value))
     (with-output-to-string (out)
       (loop
@@ -290,6 +329,9 @@ main(int argc, char **argv)
 	 (format out "~A~%" line)))))
 
 (defun compile-c++-program (object-file c++-file &key (compiler (default-c++-compiler)) (user-cxx-flags nil))
+  "Compile C++-FILE using COMPILER to produce the resulting
+OBJECT-FILE. A list of additional flags to be passed to the compiler
+can be specified using the USER-CXX-FLAGS argument."
   (multiple-value-bind (stream exit-code process) (ext:run-program (namestring compiler)
 								   (append (list "-c" "-o" (namestring object-file) (namestring c++-file))
 									   (default-eql-cxx-flags)
@@ -302,6 +344,9 @@ main(int argc, char **argv)
     object-file))
 
 (defun link-c++-program (output-file object-files &key (linker (default-c++-linker)) (user-ld-flags nil))
+  "Link the OBJECT-FILES using LINKER to produce the resulting
+OUTPUT-FILE. A list of additional flags to be passed to the linker can
+be specified using the USER-LD-FLAGS argument."
   (multiple-value-bind (stream exit-code process) (ext:run-program (namestring linker)
 								   (append (default-eql-ld-flags)
 									   user-ld-flags
