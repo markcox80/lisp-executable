@@ -27,4 +27,4 @@
 (in-package "LISP-EXECUTABLE.TESTS")
 
 (defmethod asdf:perform ((operation asdf:test-op) (component (eql (asdf:find-system "lisp-executable-tests"))))
-  (lisp-unit:run-all-tests "LISP-EXECUTABLE.TESTS"))
+  (lisp-unit:run-tests :all "LISP-EXECUTABLE.TESTS"))

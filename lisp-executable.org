@@ -420,6 +420,6 @@ The lisp-executable library outlined above is tested using the
   (asdf:test-system "lisp-executable")  
 #+end_src
 
-The tests require the [[https://github.com/OdonataResearchLLC/lisp-unit/wiki][~LISP-UNIT~]] unit testing library (version 0.8.1
+The tests require the [[https://github.com/OdonataResearchLLC/lisp-unit/wiki][~LISP-UNIT~]] unit testing library (version 0.9.1
 and above). The version available from [[http://www.quicklisp.org][~QUICKLISP~]] should always be
 sufficient.
