@@ -47,6 +47,7 @@ START-NEW-LISP-MACHINE and SAVE-EXECUTABLE-USING-FUNCTION-AND-DIE."
 (defgeneric command-line-arguments ())
 (defgeneric executable-files (output-file))
 
+;; ---TODO Look to see if ASDF exports a function to do this.
 (defun determine-complete-set-of-asdf-systems (systems &key (operation (make-instance 'asdf:load-op)))
   (let ((visited nil))
     (labels ((visitedp (system)
@@ -61,7 +62,10 @@ START-NEW-LISP-MACHINE and SAVE-EXECUTABLE-USING-FUNCTION-AND-DIE."
 		      (symbolp system))
 		  (process (asdf:find-system system)))
 		 ((and (listp system) (find (first system) '(asdf:load-op asdf:compile-op)))
-		  (map nil #'process (rest system)))		 
+		  (map nil #'process (rest system)))
+		 ((and (listp system) (eql :version (first system)))
+		  (assert (= 3 (length system)))
+		  (process (second system)))
 		 (t
 		  (error "Don't know how to process system ~A" system)))))
       (map nil #'process systems))
