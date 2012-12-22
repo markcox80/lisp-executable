@@ -174,13 +174,12 @@ directory found in DEFAULT-PATHNAME."
 	       
 	       (with-temporary-file (main-object "o" output-file)
 		 (with-temporary-file (main-cpp "cpp" output-file)
-		   (let ((lib-fn (first (asdf:make-build asdf-system :type :lib :monolithic t))))
+		   (let ((lib-fn (first (asdf:make-build asdf-system :type :lib :monolithic t :name-suffix "-lisp-executable"))))
 		     (generate-main-cpp main-cpp
 					(append prebuilt-initialisation-names
-						(list (format nil "init_lib_~A_MONO" (substitute #\_ #\- (string-upcase asdf-system)))))
+						(list (format nil "init_lib_~A_LISP_EXECUTABLE" (substitute #\_ #\- (string-upcase asdf-system)))))
 					code
 					:if-exists :supersede)
-		     (alexandria:copy-file main-cpp "/tmp/test.cpp" :if-to-exists :supersede)
 		     (compile-c++-program main-object main-cpp)
 		     (link-c++-program output-file (append (list main-object lib-fn)
 							   prebuilt-static-libraries))))))))
