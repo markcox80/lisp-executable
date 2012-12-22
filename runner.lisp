@@ -1,5 +1,6 @@
 #+:eql (load "~/.eclrc")
 (pushnew "./" asdf:*central-registry*)
+(pushnew "../../contrib/lisp-unit/" asdf:*central-registry*)
 (asdf:oos 'asdf:test-op "lisp-executable-tests")
 (unwind-protect
   (asdf:oos 'lisp-executable:create-executables-op "lisp-executable-example")
