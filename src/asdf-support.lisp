@@ -42,15 +42,6 @@
   (values (list (asdf:component-pathname component))
 	  t))
 
-(defmethod asdf:perform ((operation asdf:compile-op) (component executable))
-  )
-
-(defmethod asdf:perform ((operation asdf:load-op) (component executable))
-  )
-
-(defmethod asdf:perform :before ((operation create-executables-op) (component executable))
-  (asdf:load-system (asdf:component-system component)))
-
 (defmethod asdf:perform ((operation create-executables-op) (component executable))
   (destructuring-bind (package-name symbol-name) (program-path component)
     (lisp-executable:create-executable (intern symbol-name (find-package package-name)) 
@@ -59,4 +50,8 @@
 				       :if-exists :supersede)))
 
 (defmethod asdf:perform ((operation create-executables-op) (component t))
-  t)
+  (values))
+
+(defmethod asdf:component-depends-on ((operation create-executables-op) (component executable))
+  (append (list (cons 'asdf:load-op (asdf::component-load-dependencies component)))
+          (call-next-method)))
