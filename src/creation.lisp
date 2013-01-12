@@ -47,29 +47,26 @@ START-NEW-LISP-MACHINE and SAVE-EXECUTABLE-USING-FUNCTION-AND-DIE."
 (defgeneric command-line-arguments ())
 (defgeneric executable-files (output-file))
 
-;; ---TODO Look to see if ASDF exports a function to do this.
-(defun determine-complete-set-of-asdf-systems (systems &key (operation (make-instance 'asdf:load-op)))
-  (let ((visited nil))
-    (labels ((visitedp (system)
-	       (find system visited))
-	     (process (system)
-	       (cond
-		 ((typep system 'asdf:module)
-		  (unless (visitedp system)
-		    (push system visited)
-		    (map nil #'process (asdf:component-depends-on operation system))))
-		 ((or (stringp system)
-		      (symbolp system))
-		  (process (asdf:find-system system)))
-		 ((and (listp system) (find (first system) '(asdf:load-op asdf:compile-op)))
-		  (map nil #'process (rest system)))
-		 ((and (listp system) (eql :version (first system)))
-		  (assert (= 3 (length system)))
-		  (process (second system)))
-		 (t
-		  (error "Don't know how to process system ~A" system)))))
-      (map nil #'process systems))
-    visited))
+(defvar *all-systems* nil)
+(defclass sticky-beak-op (asdf:operation)
+  ())
+
+(defmethod asdf:component-depends-on ((op sticky-beak-op) component)
+  (list (cons 'sticky-beak-op (asdf::component-load-dependencies component))))
+
+(defmethod asdf:perform ((op sticky-beak-op) (component t))
+  (declare (ignore op component)))
+
+(defmethod asdf:perform ((op sticky-beak-op) (component asdf:system))
+  (declare (ignore op))
+  (pushnew component *all-systems*))
+
+(defun determine-complete-set-of-asdf-systems (systems)
+  (let ((*all-systems* nil))
+    (map nil #'(lambda (system)
+		 (asdf:oos 'sticky-beak-op system :force t))
+	 systems)
+    *all-systems*))
 
 (defun create-executable (program-name output-file &rest args &key asdf-system (if-exists :error) &allow-other-keys)
   (when (probe-file output-file)
