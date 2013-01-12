@@ -32,11 +32,19 @@
     :reader program-path)))
 
 (defmethod asdf:source-file-type ((component executable) system)
-  (declare (ignore system))
+  (declare (ignorable component system))
   nil)
 
 (defclass create-executables-op (asdf:operation)
   ())
+
+(defmethod asdf:component-depends-on ((operation create-executables-op) (component executable))
+  (append (list (cons 'asdf:load-op (asdf::component-load-dependencies component)))
+          (call-next-method)))
+
+(defmethod asdf:input-files ((operation create-executables-op) (component executable))
+  (declare (ignorable operation component))
+  nil)
 
 (defmethod asdf:output-files ((operation create-executables-op) (component executable))
   (values (list (asdf:component-pathname component))
@@ -52,6 +60,18 @@
 (defmethod asdf:perform ((operation create-executables-op) (component t))
   (values))
 
-(defmethod asdf:component-depends-on ((operation create-executables-op) (component executable))
-  (append (list (cons 'asdf:load-op (asdf::component-load-dependencies component)))
-          (call-next-method)))
+(defmethod asdf:input-files ((operation asdf:compile-op) (component executable))
+  (declare (ignorable operation component))
+  nil)
+
+(defmethod asdf:perform ((operation asdf:compile-op) (component executable))
+  (declare (ignorable operation component))
+  nil)
+
+(defmethod asdf:input-files ((operation asdf:load-op) (component executable))
+  (declare (ignorable operation component))
+  nil)
+
+(defmethod asdf:perform ((operation asdf:load-op) (component executable))
+  (declare (ignorable operation component))
+  nil)
