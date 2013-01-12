@@ -1,7 +1,10 @@
 (pushnew "./" asdf:*central-registry*)
-(asdf:oos 'asdf:test-op "lisp-executable-tests")
+(asdf:load-system "lisp-unit")
+(setf lisp-unit:*print-errors* t
+      lisp-unit:*print-failures* t)
+(asdf:test-system "lisp-executable")
 (unwind-protect
-  (asdf:oos 'lisp-executable:create-executables-op "lisp-executable-example")
+     (asdf:oos 'lisp-executable:create-executables-op "lisp-executable-example")
   
   #+:ecl (ext:quit 0)
   #+:sbcl (sb-ext:exit :code 0)
