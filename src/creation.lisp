@@ -52,7 +52,8 @@ START-NEW-LISP-MACHINE and SAVE-EXECUTABLE-USING-FUNCTION-AND-DIE."
   ())
 
 (defmethod asdf:component-depends-on ((op sticky-beak-op) component)
-  (list (cons 'sticky-beak-op (asdf::component-load-dependencies component))))
+  (append (list (cons 'sticky-beak-op (asdf::component-load-dependencies component)))
+	  (call-next-method)))
 
 (defmethod asdf:perform ((op sticky-beak-op) (component t))
   (declare (ignore op component)))
