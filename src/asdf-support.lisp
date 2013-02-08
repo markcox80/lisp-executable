@@ -29,7 +29,12 @@
 (defclass executable (asdf:component)
   ((program
     :initarg :program
-    :reader program-path)))
+    :reader program-path)
+   (qapplication
+    :initarg :qapplication
+    :reader qapplication))
+  (:default-initargs
+   :qapplication t))
 
 (defmethod asdf:source-file-type ((component executable) system)
   (declare (ignore system))
@@ -56,7 +61,8 @@
     (lisp-executable:create-executable (intern symbol-name (find-package package-name)) 
 				       (asdf:output-file operation component)
 				       :asdf-system (asdf:component-name (asdf:component-system component))
-				       :if-exists :supersede)))
+				       :if-exists :supersede
+				       :qapplication (qapplication component))))
 
 (defmethod asdf:perform ((operation create-executables-op) (component t))
   t)

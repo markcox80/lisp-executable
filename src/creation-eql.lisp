@@ -67,7 +67,7 @@ of (PPRINT CODE)."
 	(format out ", " :stream out))
       (format out "0 }"))))
 
-(defun generate-main-cpp (pathname init-names code &key (if-exists :error))
+(defun generate-main-cpp/qapplication (pathname init-names code &key (if-exists :error))
   "Generate a C++ file at PATHNAME that initialises ECL, EQL and the
 ECL compiled static libraries that will be eventually linked with this
 C++ file. Once initialised, the lisp CODE is executed.
@@ -92,18 +92,6 @@ The value of IF-EXISTS can be either :ERROR or :SUPERSEDE."
     (format out "
 
 int
-catch_all_qexec()
-{
-    int ret = 0;
-    CL_CATCH_ALL_BEGIN(ecl_process_env())
-    {
-        ret = QApplication::exec();
-    } 
-    CL_CATCH_ALL_END;
-    return ret;
-}
-
-int
 main(int argc, char **argv)
 {
   EQL::ini(argv);
@@ -126,8 +114,76 @@ main(int argc, char **argv)
     (format out "  eql.eval(text);~%")
     (format out "
 
-  return catch_all_qexec();
+    int ret = 0;
+    CL_CATCH_ALL_BEGIN(ecl_process_env())
+    {
+        ret = QApplication::exec();
+    } 
+    CL_CATCH_ALL_END;
+
+    return ret;
 }")))
+
+(defun generate-main-cpp/qcoreapplication (pathname init-names code &key (if-exists :error))
+  "Generate a C++ file at PATHNAME that initialises ECL, EQL and the
+ECL compiled static libraries that will be eventually linked with this
+C++ file. Once initialised, the lisp CODE is executed.
+
+The INIT-NAMES parameter is a list containing strings. Each string is
+the name of the function that is to be invoked by read_VV.
+
+The value of IF-EXISTS can be either :ERROR or :SUPERSEDE."
+  (declare (type pathname pathname)
+	   (type list init-names)
+	   (type (or atom list) code)
+	   (type (member :error :supersede) if-exists))
+  (assert (every #'stringp init-names))
+  (with-open-file (out pathname :direction :output :if-exists if-exists)
+    (format out "
+#include <ecl/ecl.h>
+#include <QtGui/QApplication>
+#include \"eql.h\"
+")
+    (dolist (init-name init-names)
+      (format out "extern \"C\" void ~A(cl_object);~%" init-name))
+    (format out "
+
+int
+main(int argc, char **argv)
+{
+  EQL::ini(argv);
+
+  QCoreApplication app(argc, argv);
+
+  EQL eql;
+")
+    #-(and)
+    (progn
+      (format out "  char initialisation_text[] = ~A;~%" (format-code (let ((fn (merge-pathnames ".eclrc" (user-homedir-pathname))))
+									`(when (probe-file ,fn)
+									   (load ,fn)))))
+      (format out "  // printf(\"%s\\n\",initialisation_text);~%")
+      (format out "  eql.eval(initialisation_text);~%"))
+    (dolist (init-name init-names)
+      (format out "  read_VV(OBJNULL, ~A);~%" init-name))
+    (format out "  char text[] = ~A;~%" (format-code code))
+    (format out "  // printf(\"%s\\n\",text);~%")
+    (format out "  eql.eval(text);~%")
+    (format out "
+
+    int ret = 0;
+    CL_CATCH_ALL_BEGIN(ecl_process_env())
+    {
+        ret = QCoreApplication::exec();
+    } 
+    CL_CATCH_ALL_END;
+    return ret;
+}")))
+
+(defun generate-main-cpp (pathname init-names code &key (if-exists :error) (qapplication t))
+  (if qapplication
+      (generate-main-cpp/qapplication pathname init-names code :if-exists if-exists)
+      (generate-main-cpp/qcoreapplication pathname init-names code :if-exists if-exists)))
 
 (eval-when (:compile-toplevel :load-toplevel :execute)
   (defun do-with-temporary-file (type default-pathname function)
@@ -159,7 +215,7 @@ directory found in DEFAULT-PATHNAME."
     `(do-with-temporary-file ,type ,template #'(lambda (,var)
 						 ,@body))))
 
-(defmethod save-executable-using-code-and-die (code output-file &rest args &key asdf-system (if-exists :error) &allow-other-keys)
+(defmethod save-executable-using-code-and-die (code output-file &rest args &key asdf-system (if-exists :error) (qapplication t) &allow-other-keys)
   (declare (ignore args))
   (labels ((worker ()	     
 	     (let* ((prebuilt-components (asdf::gather-components 'asdf::lib-op (asdf:find-system asdf-system)
@@ -179,7 +235,8 @@ directory found in DEFAULT-PATHNAME."
 					(append prebuilt-initialisation-names
 						(list (format nil "init_lib_~A_LISP_EXECUTABLE" (substitute #\_ #\- (string-upcase asdf-system)))))
 					code
-					:if-exists :supersede)
+					:if-exists if-exists
+					:qapplication qapplication)
 		     (compile-c++-program main-object main-cpp)
 		     (link-c++-program output-file (append (list main-object lib-fn)
 							   prebuilt-static-libraries))))))))
