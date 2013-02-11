@@ -3,3 +3,5 @@
 *.fasl
 *.fas
 *.DS_Store
+*.lib
+
