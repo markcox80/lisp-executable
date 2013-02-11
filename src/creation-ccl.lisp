@@ -77,5 +77,5 @@
 				 (lisp-machine-exit 1))
 				(t
 				 ;; I can not (quickly) find what I am supposed to do here.
-				 (funcall ccl:*break-hook* condition ccl:*break-hook*))))))
+				 (funcall ccl:*break-hook* condition hook))))))
     (funcall function)))
