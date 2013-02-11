@@ -81,7 +81,6 @@
       (format out "#!/bin/sh
 set -e
 ~A -- $@
-echo $?
 exit $?
 " bin-output-file))
     (when (ext:run-program "/bin/chmod" :arguments (list "+x" (truename output-file)) :wait t)
