@@ -74,3 +74,10 @@
 
 (defmethod executable-files (output-file)
   (list output-file))
+
+(defmethod do-with-control-c-handled (function)
+  (labels ((handle-sigint (signal code scp)
+	     (declare (ignore signal code scp))
+	     (lisp-machine-exit 1)))
+    (system:with-enabled-interrupts ((Unix:sigint #'handle-sigint))
+      (funcall function))))
