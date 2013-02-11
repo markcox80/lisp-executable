@@ -129,10 +129,7 @@ START-NEW-LISP-MACHINE and SAVE-EXECUTABLE-USING-FUNCTION-AND-DIE."
 								       (lisp-machine-exit 0))))
 						  (error (c)
 						    (format *error-output* "~&Unhandled error: ~A~%" c)
-						    (lisp-machine-exit 1))
-						  (condition (c)
-						    (format *error-output* "~&Unhandled signal: ~A (~A)~%" c (type-of c))
-						    (lisp-machine-exit 2)))
+						    (lisp-machine-exit 1)))
 						 (error "LISP-EXECUTABLE.CREATION::LISP-MACHINE-EXIT NOT IMPLEMENTED PROPERLY."))
 	 output-file
 	 args))
