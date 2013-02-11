@@ -73,16 +73,16 @@
   (setf args (remove-from-plist-unless-keys-are args '()))
   (let ((bin-output-file (make-pathname :type "bin" :defaults output-file))
 	(function (eval `(lambda ()
-			   (unwind-protect				
-				(progn
-				  (setf *load-verbose* ,*load-verbose*
-					*compile-verbose* ,*compile-verbose*)
-				  ,code)
-			     (ext:quit 0))))))
+			   (progn
+			     (setf *load-verbose* ,*load-verbose*
+				   *compile-verbose* ,*compile-verbose*)
+			     ,code)))))
     (with-open-file (out output-file :direction :output)
       (format out "#!/bin/sh
-
+set -e
 ~A -- $@
+echo $?
+exit $?
 " bin-output-file))
     (when (ext:run-program "/bin/chmod" :arguments (list "+x" (truename output-file)) :wait t)
       (error "Unable to execute chmod on shell script."))
@@ -112,3 +112,9 @@
 (defmethod executable-files (output-file)
   (list output-file
 	(make-pathname :type "bin" :defaults output-file)))
+
+(defmethod do-with-control-c-handled (function)
+  (handler-case (funcall function)
+    (system::simple-interrupt-condition (c)
+      (declare (ignore c))
+      (lisp-machine-exit 1))))
