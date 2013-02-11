@@ -69,3 +69,13 @@
 
 (defmethod executable-files (output-file)
   (list output-file))
+
+(defmethod do-with-control-c-handled (function)
+  (let ((ccl:*break-hook* #'(lambda (condition hook)
+			      (cond
+				((typep condition 'ccl:interrupt-signal-condition)
+				 (lisp-machine-exit 1))
+				(t
+				 ;; I can not (quickly) find what I am supposed to do here.
+				 (funcall ccl:*break-hook* condition ccl:*break-hook*))))))
+    (funcall function)))
