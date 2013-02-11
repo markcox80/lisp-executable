@@ -35,4 +35,5 @@
   :components ((:module "example"
 			:serial t
 			:components ((:file "main")
-				     (lisp-executable:executable "example-program" :program ("LISP-EXECUTABLE.EXAMPLE" "EXAMPLE-PROGRAM"))))))
+				     (lisp-executable:executable "example-program" :program ("LISP-EXECUTABLE.EXAMPLE" "EXAMPLE-PROGRAM"))
+				     (lisp-executable:executable "control-c-tester" :program ("LISP-EXECUTABLE.EXAMPLE" "CONTROL-C-TESTER"))))))
