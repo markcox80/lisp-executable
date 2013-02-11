@@ -68,3 +68,8 @@
 
 (defmethod executable-files (output-file)
   (list output-file))
+
+(defmethod do-with-control-c-handled (function)
+  (handler-case (funcall function)
+    (sb-sys:interactive-interrupt ()
+      (lisp-machine-exit 1))))
