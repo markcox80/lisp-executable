@@ -46,6 +46,12 @@ START-NEW-LISP-MACHINE and SAVE-EXECUTABLE-USING-FUNCTION-AND-DIE."
 (defgeneric save-executable-using-code-and-die (code output-file &rest args &key &allow-other-keys))
 (defgeneric command-line-arguments ())
 (defgeneric executable-files (output-file))
+(defgeneric do-with-control-c-handled (function))
+
+(eval-when (:compile-toplevel :load-toplevel :execute)
+  (defmacro with-control-c-handled (&body body)
+    `(do-with-control-c-handled #'(lambda ()
+				    ,@body))))
 
 (defvar *all-systems* nil)
 (defclass sticky-beak-op (asdf:operation)
