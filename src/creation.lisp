@@ -122,14 +122,17 @@ START-NEW-LISP-MACHINE and SAVE-EXECUTABLE-USING-FUNCTION-AND-DIE."
       (:supersede)))
 
   (apply #'save-executable-using-code-and-die `(progn
-						 (handler-case (progn
+						 (handler-case (with-control-c-handled
 								 (let ((rv (program-apply ',program-name (command-line-arguments))))
 								   (if (integerp rv)
 								       (lisp-machine-exit rv)
 								       (lisp-machine-exit 0))))
 						  (error (c)
 						    (format *error-output* "~&Unhandled error: ~A~%" c)
-						    (lisp-machine-exit 1)))
+						    (lisp-machine-exit 1))
+						  (condition (c)
+						    (format *error-output* "~&Unhandled signal: ~A (~A)~%" c (type-of c))
+						    (lisp-machine-exit 2)))
 						 (error "LISP-EXECUTABLE.CREATION::LISP-MACHINE-EXIT NOT IMPLEMENTED PROPERLY."))
 	 output-file
 	 args))
