@@ -87,7 +87,7 @@
 
 (register-built-in-conversion-function 'built-ins
 				       (let ((types '(number real float single-float double-float
-						                  rational integer fixnum
+						                  rational integer fixnum unsigned-byte signed-byte
 						                           ratio)))
 					 #'(lambda (type)
 					     (or (find type types)
