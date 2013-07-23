@@ -35,7 +35,8 @@
   (declare (ignorable component system))
   nil)
 
-(defclass create-executables-op (asdf:operation)
+(defclass create-executables-op (#-asdf3 asdf:operation
+				 #+asdf3 asdf:downward-operation)
   ())
 
 (defmethod asdf:component-depends-on ((operation create-executables-op) (component executable))
