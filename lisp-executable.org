@@ -393,6 +393,8 @@ that use the lisp reader with type checking and a coercion. These are
 - ~CL:RATIONAL~
 - ~CL:INTEGER~
 - ~CL:FIXNUM~
+- ~CL:UNSIGNED-BYTE~
+- ~CL:SIGNED-BYTE~
 - ~CL:RATIO~
 
 The compound type specifiers for the above can also be specified, for
