@@ -78,7 +78,6 @@ Automatic executable creation has been implemented for [[http://www.sbcl.org][SB
     $
   #+end_example
   
-[TABLE-OF-CONTENTS]
 * Design
 The API is separated in to two parts (i) the definition of the command
 line arguments the program accepts (ii) the implementation on how to
