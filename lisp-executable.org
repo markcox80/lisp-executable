@@ -1,11 +1,11 @@
 #+TITLE: Defining Command Line Programs in Common Lisp
 #+AUTHOR: Mark Cox
-#+EMAIL: (make-email-address "markcox80" :at "gmail.com")
-#+OPTIONS: author:nil email:nil
 
 The lisp-executable library provides a language for defining and
 creating programs that can be used from the Unix shell instead of the
 Lisp read-eval-print-loop (REPL).
+
+[TABLE-OF-CONTENTS]
 
 * Introduction
 The goal of this Common Lisp library is to provide a convenient
@@ -411,8 +411,6 @@ converts the string in to a keyword
              (type (member nil :error :supersede) if-exists-value)))
 #+end_src
 
-
-Author: Mark Cox ~(make-email-address "markcox80" :at "gmail.com")~
 * Testing the library
 The lisp-executable library outlined above is tested using the
 ~LISP-EXECUTABLE-TESTS~ system. These tests can be executed by issuing
