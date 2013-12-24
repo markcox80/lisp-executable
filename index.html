@@ -1,0 +1,957 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+               "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
+<head>
+<title>Lisp Executable</title>
+<meta http-equiv="Content-Type" content="text/html;charset=iso-8859-1"/>
+<meta name="title" content="Lisp Executable"/>
+<meta name="generator" content="Org-mode"/>
+<meta name="generated" content="2013-12-24T13:39+1000"/>
+<meta name="author" content="Mark Cox"/>
+<meta name="description" content=""/>
+<meta name="keywords" content=""/>
+<style type="text/css">
+ <!--/*--><![CDATA[/*><!--*/
+  html { font-family: Times, serif; font-size: 12pt; }
+  .title  { text-align: center; }
+  .todo   { color: red; }
+  .done   { color: green; }
+  .tag    { background-color: #add8e6; font-weight:normal }
+  .target { }
+  .timestamp { color: #bebebe; }
+  .timestamp-kwd { color: #5f9ea0; }
+  .right  {margin-left:auto; margin-right:0px;  text-align:right;}
+  .left   {margin-left:0px;  margin-right:auto; text-align:left;}
+  .center {margin-left:auto; margin-right:auto; text-align:center;}
+  p.verse { margin-left: 3% }
+  pre {
+	border: 1pt solid #AEBDCC;
+	background-color: #F3F5F7;
+	padding: 5pt;
+	font-family: courier, monospace;
+        font-size: 90%;
+        overflow:auto;
+  }
+  table { border-collapse: collapse; }
+  td, th { vertical-align: top;  }
+  th.right  { text-align:center;  }
+  th.left   { text-align:center;   }
+  th.center { text-align:center; }
+  td.right  { text-align:right;  }
+  td.left   { text-align:left;   }
+  td.center { text-align:center; }
+  dt { font-weight: bold; }
+  div.figure { padding: 0.5em; }
+  div.figure p { text-align: center; }
+  div.inlinetask {
+    padding:10px;
+    border:2px solid gray;
+    margin:10px;
+    background: #ffffcc;
+  }
+  textarea { overflow-x: auto; }
+  .linenr { font-size:smaller }
+  .code-highlighted {background-color:#ffff00;}
+  .org-info-js_info-navigation { border-style:none; }
+  #org-info-js_console-label { font-size:10px; font-weight:bold;
+                               white-space:nowrap; }
+  .org-info-js_search-highlight {background-color:#ffff00; color:#000000;
+                                 font-weight:bold; }
+  /*]]>*/-->
+</style>
+<link id="pagestyle" rel="stylesheet" type="text/css" href="solarized-light.css" />
+<script type="text/javascript" src="org-info.js">
+/**
+ *
+ * @source: org-info.js
+ *
+ * @licstart  The following is the entire license notice for the
+ *  JavaScript code in org-info.js.
+ *
+ * Copyright (C) 2012-2013  Sebastian Rose
+ *
+ *
+ * The JavaScript code in this tag is free software: you can
+ * redistribute it and/or modify it under the terms of the GNU
+ * General Public License (GNU GPL) as published by the Free Software
+ * Foundation, either version 3 of the License, or (at your option)
+ * any later version.  The code is distributed WITHOUT ANY WARRANTY;
+ * without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE.  See the GNU GPL for more details.
+ *
+ * As additional permission under GNU GPL version 3 section 7, you
+ * may distribute non-source (e.g., minimized or compacted) forms of
+ * that code without the copy of the GNU GPL normally required by
+ * section 4, provided you include this license notice and a URL
+ * through which recipients can access the Corresponding Source.
+ *
+ * @licend  The above is the entire license notice
+ * for the JavaScript code in org-info.js.
+ *
+ */
+</script>
+
+<script type="text/javascript">
+
+/*
+@licstart  The following is the entire license notice for the
+JavaScript code in this tag.
+
+Copyright (C) 2012-2013 Free Software Foundation, Inc.
+
+The JavaScript code in this tag is free software: you can
+redistribute it and/or modify it under the terms of the GNU
+General Public License (GNU GPL) as published by the Free Software
+Foundation, either version 3 of the License, or (at your option)
+any later version.  The code is distributed WITHOUT ANY WARRANTY;
+without even the implied warranty of MERCHANTABILITY or FITNESS
+FOR A PARTICULAR PURPOSE.  See the GNU GPL for more details.
+
+As additional permission under GNU GPL version 3 section 7, you
+may distribute non-source (e.g., minimized or compacted) forms of
+that code without the copy of the GNU GPL normally required by
+section 4, provided you include this license notice and a URL
+through which recipients can access the Corresponding Source.
+
+
+@licend  The above is the entire license notice
+for the JavaScript code in this tag.
+*/
+
+<!--/*--><![CDATA[/*><!--*/
+org_html_manager.set("TOC_DEPTH", "3");
+org_html_manager.set("LINK_HOME", "");
+org_html_manager.set("LINK_UP", "");
+org_html_manager.set("LOCAL_TOC", "1");
+org_html_manager.set("VIEW_BUTTONS", "0");
+org_html_manager.set("MOUSE_HINT", "underline");
+org_html_manager.set("FIXED_TOC", "0");
+org_html_manager.set("TOC", "1");
+org_html_manager.set("VIEW", "info");
+org_html_manager.setup();  // activate after the parameters are set
+/*]]>*///-->
+</script>
+<script type="text/javascript">
+/*
+@licstart  The following is the entire license notice for the
+JavaScript code in this tag.
+
+Copyright (C) 2012-2013 Free Software Foundation, Inc.
+
+The JavaScript code in this tag is free software: you can
+redistribute it and/or modify it under the terms of the GNU
+General Public License (GNU GPL) as published by the Free Software
+Foundation, either version 3 of the License, or (at your option)
+any later version.  The code is distributed WITHOUT ANY WARRANTY;
+without even the implied warranty of MERCHANTABILITY or FITNESS
+FOR A PARTICULAR PURPOSE.  See the GNU GPL for more details.
+
+As additional permission under GNU GPL version 3 section 7, you
+may distribute non-source (e.g., minimized or compacted) forms of
+that code without the copy of the GNU GPL normally required by
+section 4, provided you include this license notice and a URL
+through which recipients can access the Corresponding Source.
+
+
+@licend  The above is the entire license notice
+for the JavaScript code in this tag.
+*/
+<!--/*--><![CDATA[/*><!--*/
+ function CodeHighlightOn(elem, id)
+ {
+   var target = document.getElementById(id);
+   if(null != target) {
+     elem.cacheClassElem = elem.className;
+     elem.cacheClassTarget = target.className;
+     target.className = "code-highlighted";
+     elem.className   = "code-highlighted";
+   }
+ }
+ function CodeHighlightOff(elem, id)
+ {
+   var target = document.getElementById(id);
+   if(elem.cacheClassElem)
+     elem.className = elem.cacheClassElem;
+   if(elem.cacheClassTarget)
+     target.className = elem.cacheClassTarget;
+ }
+/*]]>*///-->
+</script>
+
+</head>
+<body>
+
+<div id="preamble">
+
+</div>
+
+<div id="content">
+<h1 class="title">Lisp Executable</h1>
+
+
+<p>
+The lisp-executable library provides a language for defining and
+creating programs that can be used from the Unix shell instead of the
+Lisp read-eval-print-loop (REPL).
+</p>
+<div id="table-of-contents">
+<h2>Table of Contents</h2>
+<div id="text-table-of-contents">
+<ul>
+<li><a href="#sec-1">1 Introduction</a></li>
+<li><a href="#sec-2">2 Getting Started Quickly</a></li>
+<li><a href="#sec-3">3 Design</a></li>
+<li><a href="#sec-4">4 Defining a Program</a>
+<ul>
+<li><a href="#sec-4-1">4.1 Program Lambda Args</a>
+<ul>
+<li><a href="#sec-4-1-1">4.1.1 Options</a></li>
+<li><a href="#sec-4-1-2">4.1.2 Arguments</a></li>
+<li><a href="#sec-4-1-3">4.1.3 Other Arguments</a></li>
+</ul></li>
+</ul>
+</li>
+<li><a href="#sec-5">5 Defining a Dispatcher</a></li>
+<li><a href="#sec-6">6 Testing a Program</a></li>
+<li><a href="#sec-7">7 Reading the command line</a></li>
+<li><a href="#sec-8">8 Generating a program</a></li>
+<li><a href="#sec-9">9 ASDF Build Integration</a></li>
+<li><a href="#sec-10">10 Conversion Functions</a></li>
+<li><a href="#sec-11">11 Testing the library</a></li>
+<li><a href="#sec-12">12 Acknowledgments</a></li>
+</ul>
+</div>
+</div>
+
+
+<div id="outline-container-1" class="outline-2">
+<h2 id="sec-1"><span class="section-number-2">1</span> Introduction</h2>
+<div class="outline-text-2" id="text-1">
+
+<p>The goal of this Common Lisp library is to provide a convenient
+abstraction to creating executable programs that can interact easily
+with other tools that accompany the Unix shell. The abstraction should
+be familiar and straight forward to use.
+</p>
+<p>
+The library consists of
+</p><ul>
+<li>a language for defining programs that accept command line arguments.
+</li>
+<li>the ability to automatically generate an executable for a defined
+  program.
+</li>
+<li>an ASDF:COMPONENT so that executables can be built using an
+  ASDF:OPERATION.
+</li>
+</ul>
+
+
+<p>
+The library provides two different styles of passing command line
+arguments to the defined program
+</p><dl>
+<dt><a href="#Defining-a-program">Program</a></dt><dd>A program which accepts options and arguments with
+             options appearing anywhere on the command line.
+</dd>
+<dt><a href="#Dispatcher">Dispatcher</a></dt><dd>A program which dispatches to other programs. Example
+                software of this style would be <code>xargs</code>, <code>git</code> and
+                <code>svn</code>.
+</dd>
+</dl>
+
+
+<p>
+Lastly, the automatic executable creation relies heavily on ASDF. It
+is assumed that all programs are declared within an ASDF system.
+</p>
+<p>
+Automatic executable creation has been implemented for <a href="http://www.sbcl.org">SBCL</a>, <a href="http://ecls.sourceforge.net/">ECL</a>,
+<a href="http://www.clisp.org/">CLISP</a>, <a href="http://ccl.clozure.com/">CCL</a> and <a href="http://www.cons.org/cmucl/">CMUCL</a>.
+</p>
+</div>
+
+</div>
+
+<div id="outline-container-2" class="outline-2">
+<h2 id="sec-2"><span class="section-number-2">2</span> Getting Started Quickly</h2>
+<div class="outline-text-2" id="text-2">
+
+<ul>
+<li>Create an ASDF system to manage your program. 
+
+
+
+<pre class="src src-lisp"><span style="color: #465a61; font-style: italic;">;; </span><span style="color: #465a61; font-style: italic;">File lisp-executable-example.asd</span>
+
+(<span style="color: #728a05;">eval-when</span> (<span style="color: #728a05;">:compile-toplevel</span> <span style="color: #728a05;">:load-toplevel</span> <span style="color: #728a05;">:execute</span>)
+  (asdf:load-system <span style="color: #259185;">"lisp-executable"</span>))
+
+(defsystem lisp-executable-example
+  <span style="color: #728a05;">:components</span> ((<span style="color: #728a05;">:modules</span> <span style="color: #259185;">"example/"</span>
+                         <span style="color: #728a05;">:serial</span> t
+                         <span style="color: #728a05;">:components</span> ((<span style="color: #728a05;">:file</span> <span style="color: #259185;">"main"</span>)
+                                      (lisp-executable:executable <span style="color: #259185;">"example-program"</span> <span style="color: #728a05;">:program</span> (<span style="color: #259185;">"LISP-EXECUTABLE.EXAMPLE"</span> <span style="color: #259185;">"EXAMPLE-PROGRAM"</span>))))))  
+</pre>
+
+
+</li>
+<li>Create <code>main.lisp</code> and specify your program.
+
+
+
+<pre class="src src-lisp">  <span style="color: #465a61; font-style: italic;">;; </span><span style="color: #465a61; font-style: italic;">File example/main.lisp</span>
+(<span style="color: #728a05;">defpackage</span> <span style="color: #259185;">"LISP-EXECUTABLE.EXAMPLE"</span>
+  (<span style="color: #728a05;">:use</span> <span style="color: #259185;">"COMMON-LISP"</span>
+        <span style="color: #259185;">"LISP-EXECUTABLE"</span>))
+(<span style="color: #728a05;">in-package</span> <span style="color: #259185;">"LISP-EXECUTABLE.EXAMPLE"</span>)
+
+(<span style="color: #728a05;">define-program</span> example-program (<span style="color: #a57705;">&amp;options</span> help)
+  (<span style="color: #728a05;">cond</span>
+    (help
+     (format t <span style="color: #259185;">"Help has arrived."</span>))
+    (t
+     (format t <span style="color: #259185;">"You are doomed."</span>)))
+  (terpri))
+</pre>
+
+</li>
+<li>Create the executable.
+
+
+
+<pre class="src src-lisp">(asdf:oos 'lisp-executable:create-executables-op <span style="color: #259185;">"lisp-executable-example"</span>)
+</pre>
+
+</li>
+<li>Invoke from the command line.
+
+
+
+<pre class="example">$ example/example-program
+You are doomed.
+$ example/example-program --help
+Help has arrived.
+$
+</pre>
+
+</li>
+</ul>
+
+
+<p>  
+[TABLE-OF-CONTENTS]
+</p></div>
+
+</div>
+
+<div id="outline-container-3" class="outline-2">
+<h2 id="sec-3"><span class="section-number-2">3</span> Design</h2>
+<div class="outline-text-2" id="text-3">
+
+<p>The API is separated in to two parts (i) the definition of the command
+line arguments the program accepts (ii) the implementation on how to
+associate command line arguments to the program argument symbols.
+</p>
+<p>
+The following terms are used in this document to describe the various
+components of programs that accept command line arguments:
+</p><dl>
+<dt>Command line program</dt><dd>The program that is being invoked from the
+     command line.
+</dd>
+<dt>Command line arguments</dt><dd>The list of arguments being passed to the
+     program.
+</dd>
+<dt>Program option (or option)</dt><dd>A command line argument that modifies
+                    how the command line program performs its
+                    task. Program options can accept parameters.
+</dd>
+</dl>
+
+
+</div>
+
+</div>
+
+<div id="outline-container-4" class="outline-2">
+<h2 id="sec-4"><span class="section-number-2">4</span> Defining a Program</h2>
+<div class="outline-text-2" id="text-4">
+
+<p>The first type of command line program introduced is one where the
+program options can appear at any position within the command line
+arguments. For example, the following two invocations of the command
+line program <code>process-file</code> are equivalent
+</p>
+
+
+<pre class="example">$ process-file input output -v
+$ process-file -v input output
+</pre>
+
+
+<p>
+To define this type of program you use the macro
+<code>LISP-EXECUTABLE:DEFINE-PROGRAM</code>.
+</p>
+
+
+<pre class="src src-lisp">(<span style="color: #728a05;">defmacro</span> <span style="color: #2075c7;">define-program</span> (program-name program-lambda-args <span style="color: #a57705;">&amp;body</span> body))
+</pre>
+
+<p>
+The symbol <code>PROGRAM-NAME</code> is used to identify the command line
+program. The format of <code>PROGRAM-LAMBDA-ARGS</code> is presented in the next
+section. Finally, the code that uses the command line arguments is
+placed in <code>BODY</code>.
+</p>
+</div>
+
+<div id="outline-container-4-1" class="outline-3">
+<h3 id="sec-4-1"><span class="section-number-3">4.1</span> Program Lambda Args</h3>
+<div class="outline-text-3" id="text-4-1">
+
+<p>The type of command line arguments accepted by the program is
+encapsulated within the <code>PROGRAM-LAMBDA-ARGS</code> form. The different
+types are
+</p><dl>
+<dt>Option</dt><dd>Option arguments change the behaviour of the command line
+            program. 
+</dd>
+<dt>Argument</dt><dd>An argument which is not an option.
+</dd>
+<dt>Others</dt><dd>A collection of non option arguments.
+</dd>
+</dl>
+
+
+
+</div>
+
+<div id="outline-container-4-1-1" class="outline-4">
+<h4 id="sec-4-1-1"><span class="section-number-4">4.1.1</span> Options</h4>
+<div class="outline-text-4" id="text-4-1-1">
+
+<p>Within the option argument type there are three subtypes depending on
+whether the declared option accepts a parameter:
+</p><dl>
+<dt>No parameter option</dt><dd>On or off switch. e.g. <code>--verbose</code>
+</dd>
+<dt>Non mandatory parameter option</dt><dd>The option can appear with or without an
+     argument. e.g. <code>--debug</code> and <code>--debug=high</code>
+</dd>
+<dt>Mandatory parameter option</dt><dd>The option must appear with an
+     argument. e.g. <code>--exclusion-list=file.txt</code>
+</dd>
+</dl>
+
+
+<p>
+It should be noted that the manner in which options and their
+parameters are read from the command line is determined by the
+<code>*COMMAND-LINE-ARGUMENTS-READER*</code> object. 
+</p>
+<p>
+An example of declaring the different types of options is as follows
+</p>
+
+
+<pre class="src src-lisp">(<span style="color: #728a05;">define-program</span> program (<span style="color: #a57705;">&amp;options</span> help (debug-level debug-level-value 1) (file file-value)))
+</pre>
+
+<p>
+Notice that all option command line arguments declared in a
+<code>PROGRAM-LAMBDA-ARGS</code> must be proceeded with the symbol
+<code>&amp;OPTIONS</code>. The <code>PROGRAM</code> example can accept three options <code>HELP</code>,
+<code>DEBUG-LEVEL</code> and <code>FILE</code>. The value of these symbols throughout the
+body of <code>PROGRAM</code> can be either non <code>NIL</code> or <code>NIL</code> depending on
+whether the option was found on the command line.
+</p>
+<p>
+The symbol <code>HELP</code> is a no parameter option. The option <code>DEBUG-LEVEL</code>
+is a non mandatory parameter option. If a parameter to <code>DEBUG-LEVEL</code>
+is found on the command line, the value of this parameter is assigned
+to the symbol <code>DEBUG-LEVEL-VALUE</code>. If no parameter is found, then
+<code>DEBUG-LEVEL-VALUE</code> is bound to <code>1</code>. The option <code>FILE</code> is a mandatory
+parameter option with its parameter value assigned to the symbol
+<code>FILE-VALUE</code>.
+</p>
+<ul>
+<li id="sec-4-1-1-1">Converting to other types<br/>
+For options that are parameterized, the parameter value read from the
+command line will be of type <code>STRING</code> by default. Automatic conversion
+to other types can be specified using the <code>CONVERSION-FUNCTION</code>
+declaration expression.
+
+
+
+<pre class="src src-lisp">(<span style="color: #728a05;">define-program</span> program (<span style="color: #a57705;">&amp;options</span> (file file-value) (debug-level debug-level-value 1) help)
+  (<span style="color: #728a05;">declare</span> (conversion-function (integer 0 3) debug-level)))
+</pre>
+
+<p>
+User supplied conversion functions can be used by simply using the
+symbol that names the function. For more information please see the
+section on <a href="#sec-10">conversion functions</a>.
+</p>
+</li>
+</ul>
+<ul>
+<li id="sec-4-1-1-2">Option Identifiers<br/>
+In the above example, the symbol <code>FILE</code> will be set using the string
+<code>--file</code> on the command line if it is present.  Sometimes it is
+convenient to specify other strings which are equivalent identifiers
+for the same option. To accommodate this behaviour the declaration
+<code>IDENTIFIERS</code> is provided.
+
+
+
+<pre class="src src-lisp">(<span style="color: #728a05;">define-program</span> program (<span style="color: #a57705;">&amp;options</span> (file file-value) (debug-level debug-level-value 1) help)
+  (<span style="color: #728a05;">declare</span> (identifiers file <span style="color: #259185;">"file"</span> #\f)
+           (identifiers help <span style="color: #259185;">"help"</span> #\h)))
+</pre>
+
+<p>
+Valid identifiers are strings and characters.
+</p>
+<p>
+Again, it is up to the <code>*COMMAND-LINE-ARGUMENTS-READER*</code> object to
+identify options among the command line arguments.
+</p>
+</li>
+</ul>
+<ul>
+<li id="sec-4-1-1-3">Multiple encounters<br/>
+The last part of option declaration is specifying what to do when the
+same option is found more than once on the command line. This
+behaviour can be customised using the declaration
+<code>REDUCING-POLICY</code>.
+
+
+
+<pre class="src src-lisp">(<span style="color: #728a05;">define-program</span> program (<span style="color: #a57705;">&amp;options</span> (file file-value) (output-file output-file-value))
+  (<span style="color: #728a05;">declare</span> (reducing-policy append-policy file output-file)))
+</pre>
+
+<p>
+By default, if an option appears more than once, an error is
+produced. However, a number of other policies are provided
+</p><dl>
+<dt><code>TOGGLE-POLICY</code>   </dt><dd>Negates the previous value. Useful for no parameter options.
+</dd>
+<dt><code>COUNT-POLICY</code>    </dt><dd>Count the number of times the switch appears on the command line.
+</dd>
+<dt><code>USE-FIRST-POLICY</code></dt><dd>Use the first value read from the command line.
+</dd>
+<dt><code>USE-LAST-POLICY</code> </dt><dd>Use the last value read from the command line.
+</dd>
+<dt><code>APPEND-POLICY</code>   </dt><dd>Concatenates values to form a list.
+</dd>
+<dt><code>ERROR-POLICY</code>    </dt><dd>Signals an error.  
+</dd>
+</dl>
+
+
+<p>
+User supplied reducing functions can be used by specifying the symbol
+name of the function. The function supplied must adhere to the
+following policies: 
+</p><dl>
+<dt>Accept 0 arguments</dt><dd>The value returned will be the value used when the argument is NOT present on the command line. (Only for no parameter option arguments)
+</dd>
+<dt>Accept 1 argument </dt><dd>The first time the option argument is encountered on the command line. (Not applicable for no parameter option arguments)
+</dd>
+<dt>Accept 2 arguments</dt><dd>When the option argument is encountered again on the command line.
+</dd>
+</dl>
+
+
+</li>
+</ul>
+</div>
+
+</div>
+
+<div id="outline-container-4-1-2" class="outline-4">
+<h4 id="sec-4-1-2"><span class="section-number-4">4.1.2</span> Arguments</h4>
+<div class="outline-text-4" id="text-4-1-2">
+
+<p>Anything found on the command line that is not an option, is an
+argument. All argument declarations occur after the <code>&amp;ARGUMENTS</code>
+symbol.
+</p>
+
+
+<pre class="src src-lisp">(<span style="color: #728a05;">define-program</span> program (<span style="color: #a57705;">&amp;options</span> help <span style="color: #a57705;">&amp;arguments</span> filename)
+  (<span style="color: #728a05;">cond</span> 
+    (help
+     (print-help))
+    (filename
+     (perform-action filename))
+    (t
+     (print-help)
+     (<span style="color: #c60007; font-weight: bold;">error</span> <span style="color: #259185;">"Invalid usage."</span>))))
+</pre>
+
+<p>
+The example above defines an argument <code>FILENAME</code>. The value of
+argument symbols will be either <code>NIL</code> or non <code>NIL</code> depending on
+whether the argument is present on the command line or not.
+</p>
+<p>
+By default, the value of argument symbols will be of type
+string. Automatic conversion to other types can be performed using the
+<code>CONVERSION-FUNCTION</code> declaration.
+</p>
+
+
+<pre class="src src-lisp">(<span style="color: #728a05;">define-program</span> program (<span style="color: #a57705;">&amp;options</span> help <span style="color: #a57705;">&amp;arguments</span> how-many-iterations)
+  (<span style="color: #728a05;">declare</span> (conversion-function integer how-many-iterations)))
+</pre>
+
+
+</div>
+
+</div>
+
+<div id="outline-container-4-1-3" class="outline-4">
+<h4 id="sec-4-1-3"><span class="section-number-4">4.1.3</span> Other Arguments</h4>
+<div class="outline-text-4" id="text-4-1-3">
+
+<p>Other arguments accumulate all non processed command line arguments
+passed to the program.
+</p>
+
+
+<pre class="src src-lisp">(<span style="color: #728a05;">define-program</span> program (<span style="color: #a57705;">&amp;options</span> help <span style="color: #a57705;">&amp;arguments</span> how-many-iterations <span style="color: #a57705;">&amp;others</span> files))
+</pre>
+
+<p>
+String conversion for rest arguments can be specified using
+the <code>CONVERSION-FUNCTION</code>.
+</p>
+</div>
+</div>
+</div>
+
+</div>
+
+<div id="outline-container-5" class="outline-2">
+<h2 id="sec-5"><span class="section-number-2">5</span> Defining a Dispatcher</h2>
+<div class="outline-text-2" id="text-5">
+
+<p>A dispatcher program is one in which the operation to be performed is
+determined from the command line. For example, the program <code>git</code> has a
+number of commands which are all accessed via <code>git</code>
+</p>
+
+
+<pre class="example">$ git init
+$ git status
+$ git reset
+</pre>
+
+<p>
+and so on. The goal of the dispatcher program is to easily define
+these types of programs. 
+</p>
+<p>
+The key difference between a dispatcher program and the program
+defined in the previous section is in the handling of the command line
+options. Any option occurring before an argument is an option to the
+dispatcher and any option occurring after an argument is a option to
+the dispatched program.
+</p>
+<p>
+An example dispatcher program can be defined as follows
+</p>
+
+
+<pre class="src src-lisp">(<span style="color: #728a05;">define-dispatcher-program</span> git (<span style="color: #a57705;">&amp;options</span> help <span style="color: #a57705;">&amp;arguments</span> command <span style="color: #a57705;">&amp;others</span> others)
+  (<span style="color: #728a05;">cond</span>
+    ((or help (null command))
+     (print-usage))
+    (command
+     (alexandria:switch (command <span style="color: #728a05;">:test</span> #'string-equal)
+       (<span style="color: #259185;">"init"</span>
+        (program-apply 'git/init others))
+       (<span style="color: #259185;">"commit"</span>
+        (program-apply 'git/commit others))
+       (t
+        (<span style="color: #c60007; font-weight: bold;">error</span> <span style="color: #259185;">"Don't know how to perform command ~A"</span> command))))))
+</pre>
+
+
+<p>
+The declarations <code>IDENTIFIERS</code>, <code>CONVERSION-FUNCTION</code> and
+<code>REDUCING-POLICY</code> can be used within the <code>DEFINE-DISPATCHER-PROGRAM</code>
+form as well.
+</p>
+</div>
+
+</div>
+
+<div id="outline-container-6" class="outline-2">
+<h2 id="sec-6"><span class="section-number-2">6</span> Testing a Program</h2>
+<div class="outline-text-2" id="text-6">
+
+<p>A defined program can be tested by using the functions
+<code>PROGRAM-FUNCALL</code> and <code>PROGRAM-APPLY</code>. The arguments passed to these
+functions must be of type string. The identification of options and
+non option arguments is handled by the object bound to
+<code>*COMMAND-LINE-ARGUMENTS-READER*</code>.
+</p>
+
+
+
+<pre class="src src-lisp">(<span style="color: #728a05;">define-program</span> my-program (<span style="color: #a57705;">&amp;options</span> help (file file-value) <span style="color: #a57705;">&amp;arguments</span> what-to-do)
+  (list help file-value what-to-do))
+
+(setf *command-line-arguments-reader* 'gnu-style)
+
+(program-funcall 'my-program <span style="color: #259185;">"hello-there"</span>)
+<span style="color: #465a61; font-style: italic;">; </span><span style="color: #465a61; font-style: italic;">=&gt; (NIL NIL "hello-there")</span>
+(program-funcall 'my-program <span style="color: #259185;">"--help"</span>)
+<span style="color: #465a61; font-style: italic;">; </span><span style="color: #465a61; font-style: italic;">=&gt; (T NIL NIL)</span>
+(program-funcall 'my-program <span style="color: #259185;">"--file=good-program"</span>)
+<span style="color: #465a61; font-style: italic;">; </span><span style="color: #465a61; font-style: italic;">=&gt; (NIL "good-program" NIL)</span>
+</pre>
+
+
+<p>
+The function <code>PROGRAM-APPLY</code> is to <code>PROGRAM-FUNCALL</code> as the Common
+Lisp function <code>APPLY</code> is to <code>FUNCALL</code>.
+</p>
+<p>
+If you want to test the program without considering how options are
+read from the command line, the functions <code>PROGRAM-FUNCALL-WITH-ALIST</code>
+and <code>PROGRAM-FUNCALL-WITH-PLIST</code> can be used.
+</p>
+
+
+<pre class="src src-lisp">(program-funcall-with-alist 'my-program '((help t)))
+(program-funcall-with-plist 'my-program 'help t)
+
+(program-funcall-with-alist 'my-program '((file t) (file-value <span style="color: #259185;">"input.txt"</span>)))
+(program-funcall-with-plist 'my-program '(file t file-value <span style="color: #259185;">"input.txt"</span>))
+</pre>
+
+</div>
+
+</div>
+
+<div id="outline-container-7" class="outline-2">
+<h2 id="sec-7"><span class="section-number-2">7</span> Reading the command line</h2>
+<div class="outline-text-2" id="text-7">
+
+<p>The object bound to the symbol <code>*COMMAND-LINE-ARGUMENTS-READER*</code>
+represents the method in which the command line arguments are
+identified. As of writing, <code>GNU-STYLE</code> is the only implemented style
+of identifying options and arguments from strings.
+</p>
+<p>
+The GNU style uses the following templates for options
+</p><dl>
+<dt><code>-h</code></dt><dd>A short option with identifier <code>h</code>.
+</dd>
+<dt><code>--help</code></dt><dd>A long option with identifier <code>help</code>.
+</dd>
+<dt><code>--debug=1</code></dt><dd>A long option with identifier <code>debug</code> and parameter <code>1</code>. 
+</dd>
+<dt><code>--file input.txt</code></dt><dd>A long option with identifier <code>file</code> and parameter <code>input.txt</code>. Valid for mandatory parameter options only.
+</dd>
+<dt><code>-f input.txt</code></dt><dd>A short option with identifier <code>f</code> and parameter <code>input.txt</code>. Valid for mandatory parameter options only.
+</dd>
+<dt><code>--</code></dt><dd>Terminate option processing. i.e. All options found after this delimiter will be treated as non option arguments.
+</dd>
+</dl>
+
+
+</div>
+
+</div>
+
+<div id="outline-container-8" class="outline-2">
+<h2 id="sec-8"><span class="section-number-2">8</span> Generating a program</h2>
+<div class="outline-text-2" id="text-8">
+
+<p>One of the features of the <code>LISP-EXECUTABLE</code> library is that it is
+possible to generate an executable from a command line program
+definition. 
+</p>
+<p>
+The function provided to do this is <code>CREATE-EXECUTABLE</code>.
+</p>
+
+
+<pre class="src src-lisp">(<span style="color: #728a05;">define-program</span> my-program (<span style="color: #a57705;">&amp;options</span> help)
+  (<span style="color: #728a05;">cond</span>
+    (help
+     (format t <span style="color: #259185;">"Help has arrived."</span>))
+    (t
+     (format t <span style="color: #259185;">"You are doomed."</span>))))
+
+(create-executable 'my-program <span style="color: #259185;">"/tmp/my-program"</span> <span style="color: #728a05;">:asdf-system</span> <span style="color: #259185;">"system-containing-my-program"</span>)
+</pre>
+
+
+<p>
+The keyword <code>:asdf-system</code> is important as <code>CREATE-EXECUTABLE</code> uses
+this argument to initialize a new lisp machine in order to create the
+program. The need for a separate process is that the machine specific
+function equivalent to <code>SAVE-LISP-MACHINE</code> on some lisps actually
+kills the currently executing process. e.g. <code>SB-EXT:SAVE-LISP-AND-DIE</code>
+on SBCL.
+</p></div>
+
+</div>
+
+<div id="outline-container-9" class="outline-2">
+<h2 id="sec-9"><span class="section-number-2">9</span> ASDF Build Integration</h2>
+<div class="outline-text-2" id="text-9">
+
+<p>The building of an executable can also be specified in the ASDF system
+definition by using the <code>LISP-EXECUTABLE:EXECUTABLE</code> ASDF component.
+</p>
+
+
+<pre class="src src-lisp">(<span style="color: #728a05;">eval-when</span> (<span style="color: #728a05;">:compile-toplevel</span> <span style="color: #728a05;">:load-toplevel</span> <span style="color: #728a05;">:execute</span>)
+  (asdf:load-system <span style="color: #259185;">"lisp-executable"</span>))
+
+(defsystem lisp-executable-example
+  <span style="color: #728a05;">:author</span> <span style="color: #259185;">"Mark Cox"</span>
+  <span style="color: #728a05;">:serial</span> t
+  <span style="color: #728a05;">:components</span> ((<span style="color: #728a05;">:modules</span> <span style="color: #259185;">"example/"</span>
+                         <span style="color: #728a05;">:serial</span> t
+                         <span style="color: #728a05;">:components</span> ((<span style="color: #728a05;">:file</span> <span style="color: #259185;">"main"</span>)
+                                      (lisp-executable:executable <span style="color: #259185;">"example-program"</span> <span style="color: #728a05;">:program</span> (<span style="color: #259185;">"LISP-EXECUTABLE.EXAMPLE"</span> <span style="color: #259185;">"EXAMPLE-PROGRAM"</span>))))))
+</pre>
+
+
+<p>
+The keyword argument <code>:PROGRAM</code> contains the symbol path to the
+program. From the above example, an executable will be created in the
+directory "example/" with the name "example-program". When the
+executable is executed, it will invoke the program
+<code>LISP-EXECUTABLE-EXAMPLE::EXAMPLE-PROGRAM</code>.
+</p>
+<p>
+To build the executable, you perform the
+<code>LISP-EXECUTABLE:CREATE-EXECUTABLES-OP</code> operation on the system. 
+</p>
+
+
+<pre class="src src-lisp">(asdf:oos 'lisp-executable:create-executables-op <span style="color: #259185;">"lisp-executable-example"</span>)
+</pre>
+
+</div>
+
+</div>
+
+<div id="outline-container-10" class="outline-2">
+<h2 id="sec-10"><span class="section-number-2">10</span> Conversion Functions</h2>
+<div class="outline-text-2" id="text-10">
+
+<p>As mentioned previously, you can specify a function to convert the
+string found on the command line to its expected type within the
+program. For convenience, there are some built in conversion functions
+that use the lisp reader with type checking and a coercion. These are
+</p><ul>
+<li><code>CL:NUMBER</code> 
+</li>
+<li><code>CL:REAL</code> 
+</li>
+<li><code>CL:FLOAT</code>
+</li>
+<li><code>CL:SINGLE-FLOAT</code>
+</li>
+<li><code>CL:DOUBLE-FLOAT</code>
+</li>
+<li><code>CL:RATIONAL</code>
+</li>
+<li><code>CL:INTEGER</code>
+</li>
+<li><code>CL:FIXNUM</code>
+</li>
+<li><code>CL:UNSIGNED-BYTE</code>
+</li>
+<li><code>CL:SIGNED-BYTE</code>
+</li>
+<li><code>CL:RATIO</code>
+</li>
+</ul>
+
+
+<p>
+The compound type specifiers for the above can also be specified, for
+example, the argument <code>HOW-MANY-TIMES</code> should be greater than equal to
+<code>0</code>.
+</p>
+
+
+<pre class="src src-lisp">(<span style="color: #728a05;">define-program</span> counter (<span style="color: #a57705;">&amp;options</span> (how-many-times how-many-times-value))
+  (<span style="color: #728a05;">declare</span> (conversion-function (integer 0) how-many-times)))
+</pre>
+
+
+<p>
+Another special built in conversion function is <code>CL:KEYWORD</code>, which
+converts the string in to a keyword
+</p>
+
+
+<pre class="src src-lisp">(<span style="color: #728a05;">define-program</span> file-processor (<span style="color: #a57705;">&amp;options</span> (if-exists if-exists-value))
+  (<span style="color: #728a05;">declare</span> (conversion-function keyword if-exists)
+           (type (member nil <span style="color: #728a05;">:error</span> <span style="color: #728a05;">:supersede</span>) if-exists-value)))
+</pre>
+
+
+</div>
+
+</div>
+
+<div id="outline-container-11" class="outline-2">
+<h2 id="sec-11"><span class="section-number-2">11</span> Testing the library</h2>
+<div class="outline-text-2" id="text-11">
+
+<p>The lisp-executable library outlined above is tested using the
+<code>LISP-EXECUTABLE-TESTS</code> system. These tests can be executed by issuing
+</p>
+
+
+<pre class="src src-lisp">(asdf:test-system <span style="color: #259185;">"lisp-executable"</span>)  
+</pre>
+
+
+<p>
+The tests require the <a href="https://github.com/OdonataResearchLLC/lisp-unit/wiki"><code>LISP-UNIT</code></a> unit testing library (version 0.9.1
+and above). The version available from <a href="http://www.quicklisp.org"><code>QUICKLISP</code></a> should always be
+sufficient.
+</p>
+
+</div>
+
+</div>
+
+<div id="outline-container-12" class="outline-2">
+<h2 id="sec-12"><span class="section-number-2">12</span> Acknowledgments</h2>
+<div class="outline-text-2" id="text-12">
+
+<p>Thank you to the people who develop <a href="http://thomasf.github.io/solarized-css/">Solarized CSS</a> and <a href="http://orgmode.org">Org mode</a>.
+</p>
+<p>
+Lastly, big thanks to the Lisp community for all their excellent work.
+</p></div>
+</div>
+</div>
+
+<div id="postamble">
+<p class="date">Date: 2013-12-24T13:39+1000</p>
+<p class="author">Author: Mark Cox</p>
+<p class="creator"><a href="http://orgmode.org">Org</a> version 7.9.4 with <a href="http://www.gnu.org/software/emacs/">Emacs</a> version 24</p>
+<a href="http://validator.w3.org/check?uri=referer">Validate XHTML 1.0</a>
+
+</div>
+</body>
+</html>

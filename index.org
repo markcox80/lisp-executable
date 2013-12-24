@@ -1,0 +1,11 @@
+#+TITLE: Lisp Executable
+#+AUTHOR: Mark Cox
+#+INFOJS_OPT: view:info toc:t ltoc:t mouse:underline buttons:0 path:org-info.js
+#+STYLE: <link id="pagestyle" rel="stylesheet" type="text/css" href="solarized-light.css" />
+
+#+INCLUDE: lisp-executable.org
+
+* Acknowledgments
+Thank you to the people who develop [[http://thomasf.github.io/solarized-css/][Solarized CSS]] and [[http://orgmode.org][Org mode]].
+
+Lastly, big thanks to the Lisp community for all their excellent work.
