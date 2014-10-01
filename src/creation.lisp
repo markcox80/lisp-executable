@@ -54,7 +54,8 @@ START-NEW-LISP-MACHINE and SAVE-EXECUTABLE-USING-FUNCTION-AND-DIE."
 				    ,@body))))
 
 (defvar *all-systems* nil)
-(defclass sticky-beak-op (asdf:operation)
+(defclass sticky-beak-op (#-asdf3 asdf:operation
+                          #+asdf3 asdf:downward-operation)
   ())
 
 (defmethod asdf:component-depends-on ((op sticky-beak-op) component)
