@@ -39,8 +39,14 @@
 				 #+asdf3 asdf:downward-operation)
   ())
 
+#-asdf3
 (defmethod asdf:component-depends-on ((operation create-executables-op) (component executable))
   (append (list (cons 'asdf:load-op (asdf::component-load-dependencies component)))
+          (call-next-method)))
+
+#+asdf3
+(defmethod asdf:component-depends-on ((operation create-executables-op) (component executable))
+  (append (list (list 'asdf:load-op (asdf::component-system component)))
           (call-next-method)))
 
 (defmethod asdf:input-files ((operation create-executables-op) (component executable))
