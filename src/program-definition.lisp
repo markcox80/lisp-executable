@@ -626,6 +626,7 @@
       `(progn 
 	 (ensure-program ',name :arguments (list ,@(mapcar #'argument-form (arguments program-information))))
 	 (defun ,name (,alist-var)
+           (declare (ignorable ,alist-var))
 	   (let (,@(argument-let-bindings-from-alist program-information alist-var))
 	     ,@(assemble-declarations documentation-string declarations)
 	     ,@body))))))
@@ -660,6 +661,7 @@
       `(progn 
 	 (ensure-dispatcher-program ',name :arguments (list ,@(mapcar #'argument-form (arguments dispatcher-information))))
 	 (defun ,name (,alist-var)
+           (declare (ignorable ,alist-var))
 	   (let (,@(argument-let-bindings-from-alist dispatcher-information alist-var))
 	     ,@(assemble-declarations documentation-string declarations)
 	     ,@body))))))
