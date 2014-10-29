@@ -29,7 +29,12 @@
 (defclass executable (asdf:component)
   ((program
     :initarg :program
-    :reader program-path)))
+    :reader program-path)
+   (options
+    :initarg :options
+    :reader program-options))
+  (:default-initargs
+   :options nil))
 
 (defmethod asdf:source-file-type ((component executable) system)
   (declare (ignorable component system))
@@ -59,10 +64,12 @@
 
 (defmethod asdf:perform ((operation create-executables-op) (component executable))
   (destructuring-bind (package-name symbol-name) (program-path component)
-    (lisp-executable:create-executable (intern symbol-name (find-package package-name)) 
-				       (asdf:output-file operation component)
-				       :asdf-system (asdf:component-name (asdf:component-system component))
-				       :if-exists :supersede)))
+    (apply #'lisp-executable:create-executable
+           (intern symbol-name (find-package package-name)) 
+           (asdf:output-file operation component)
+           :asdf-system (asdf:component-name (asdf:component-system component))
+           :if-exists :supersede
+           (program-options component))))
 
 (defmethod asdf:perform ((operation create-executables-op) (component t))
   (values))
