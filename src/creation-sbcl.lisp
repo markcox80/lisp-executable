@@ -29,13 +29,28 @@
 (in-package "LISP-EXECUTABLE.CREATION")
 
 (defmethod start-new-lisp-machine (&rest args &key &allow-other-keys)
-  (setf args (remove-from-plist-unless-keys-are args '(:environment :env)))
-
-  (let ((process (apply #'sb-ext:run-program (first sb-ext:*posix-argv*) nil :wait nil :input :stream :output *lisp-machine-output-stream* :error *lisp-machine-output-stream* :search t args)))
-    (unless (eql (sb-ext:process-status process) :running)
-      (error "Unable to start external SBCL process."))   
-    (force-output *lisp-machine-output-stream*)
-    process))
+  (destructuring-bind (&key dynamic-space-size control-stack-size &allow-other-keys) args   
+    (let* ((run-program-args (remove-from-plist-unless-keys-are args '(:environment :env)))
+           (process (apply #'sb-ext:run-program (first sb-ext:*posix-argv*) (append ;; Runtime options
+                                                                                   (when dynamic-space-size
+                                                                                     (list "--dynamic-space-size"
+                                                                                           (format nil "~A" dynamic-space-size)))
+                                                                                   (when control-stack-size
+                                                                                     (list "--control-stack-size"
+                                                                                           (format nil "~A" control-stack-size)))
+                                                                                   (list "--end-runtime-options")
+                                                                                   ;; Toplevel options
+                                                                                   (list "--end-toplevel-options"))
+                          :wait nil
+                          :input :stream
+                          :output *lisp-machine-output-stream*
+                          :error *lisp-machine-output-stream*
+                          :search t
+                          run-program-args)))
+      (unless (eql (sb-ext:process-status process) :running)
+        (error "Unable to start external SBCL process."))   
+      (force-output *lisp-machine-output-stream*)
+      process)))
 
 (defmethod lisp-machine-input (lisp-machine)
   (unless (eql (sb-ext:process-status lisp-machine) :running)
@@ -51,14 +66,14 @@
   (sb-ext:process-kill lisp-machine 15))
 
 (defmethod save-executable-using-code-and-die (code output-file &rest args &key &allow-other-keys)
-  (setf args (remove-from-plist-unless-keys-are args '(:purify :root-structures :environment-name :compression)))
-  (let ((function (eval `(lambda ()
-			   ,code))))
+  (let* ((save-lisp-and-die-args (remove-from-plist-unless-keys-are args '(:purify :root-structures :environment-name :compression)))
+         (function (eval `(lambda ()
+                            ,code))))
     (apply #'sb-ext:save-lisp-and-die output-file 
-	   :toplevel function
-	   :executable t
-	   :save-runtime-options t
-	   args)))
+           :toplevel function
+           :executable t
+           :save-runtime-options t ;; Needed to inhibit normal runtime option processing.
+           save-lisp-and-die-args)))
 
 (defmethod command-line-arguments ()
   (rest sb-ext:*posix-argv*))
