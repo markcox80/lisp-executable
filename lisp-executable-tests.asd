@@ -27,6 +27,7 @@
 (defsystem lisp-executable-tests
   :author "Mark Cox"
   :description "Tests for lisp-executable"
+  :license "Simplified BSD License variant"
   :serial t
   :depends-on ("lisp-executable" (:version "lisp-unit" "0.9.1"))
   :components ((:module "tests"

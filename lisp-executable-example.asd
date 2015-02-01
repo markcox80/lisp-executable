@@ -30,6 +30,7 @@
 (defsystem lisp-executable-example
   :author "Mark Cox"
   :description "Example program containing an executable."
+  :license "Simplified BSD License variant"
   :serial t
   :depends-on (lisp-executable)
   :components ((:module "example"

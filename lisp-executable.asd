@@ -27,6 +27,7 @@
 (defsystem lisp-executable
   :author "Mark Cox"
   :description "Library for defining and creating executables that can be called from the Unix shell."
+  :license "Simplified BSD License variant"
   :serial t
   :depends-on (alexandria #+:ecl prebuilt-asdf)
   :components ((:module "src"
