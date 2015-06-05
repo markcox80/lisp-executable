@@ -39,6 +39,7 @@
 				     (:file "argument-value-manager")
 				     (:file "gnu-style-command-line-arguments")
 
+                                     (:file "program-options")
 				     (:file "creation")
 				     #+:sbcl (:file "creation-sbcl")
 				     #+:ecl  (:file "creation-ecl")

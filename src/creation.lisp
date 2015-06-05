@@ -90,17 +90,21 @@ START-NEW-LISP-MACHINE and SAVE-EXECUTABLE-USING-FUNCTION-AND-DIE."
 					  `(pushnew ,(asdf:component-pathname system) asdf:*central-registry*))
 				      complete-asdf-systems)
 			      
-			      ;; load the needed systems
+                              ;; load the needed systems
 			      ,@(mapcar #'(lambda (system)
 					    `(asdf:load-system ,(asdf:component-name system)))
 					complete-asdf-systems)
 			      
 			      ;; assign the command line arguments reader
 			      (setf lisp-executable:*command-line-arguments-reader* ',lisp-executable:*command-line-arguments-reader*)
+
+                              (before-executable-creation ',program-name)
 			      
 			      ;; create the executable
-			      (lisp-executable.creation:save-executable-and-die ',program-name ,output-file ,@args))))
-    (let ((external-lisp-machine (apply #'start-new-lisp-machine args)))
+			      (apply #'lisp-executable.creation:save-executable-and-die ',program-name ,output-file
+                                     ,@args
+                                     (executable-options ',program-name)))))
+    (let ((external-lisp-machine (apply #'start-new-lisp-machine (append args (executable-options program-name)))))
       (handler-case (progn
 		      (with-open-stream (machine-input (lisp-machine-input external-lisp-machine))
 			(let ((*package* (find-package "CL-USER")))

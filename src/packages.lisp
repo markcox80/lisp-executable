@@ -44,6 +44,12 @@
 	   #:define-program
 	   #:define-dispatcher-program
 
+           #:define-program-options
+           #:ensure-program-options
+           #:program-options
+           #:before-executable-creation-function
+           #:executable-options
+
 	   #:*command-line-arguments-reader*
 	   #:gnu-style
 
