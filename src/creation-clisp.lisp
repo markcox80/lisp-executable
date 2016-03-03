@@ -95,6 +95,7 @@ exit $?
 		  bin-output-file
 		  :quiet t
 		  :verbose nil
+		  :norc t
 		  :script nil
 		  :documentation nil
 		  :init-function function
