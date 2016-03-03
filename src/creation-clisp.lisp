@@ -80,9 +80,8 @@
     (with-open-file (out output-file :direction :output)
       (format out "#!/bin/sh
 set -e
-~A -- $@
-exit $?
-" bin-output-file))
+exec \"`dirname \"$0\"`/~A\" -- \"$@\"
+" (make-pathname :defaults bin-output-file :directory nil)))
     (when (ext:run-program "/bin/chmod" :arguments (list "+x" (truename output-file)) :wait t)
       (error "Unable to execute chmod on shell script."))
     (dotimes (i 10)
