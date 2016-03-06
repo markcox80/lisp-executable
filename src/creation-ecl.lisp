@@ -61,7 +61,8 @@
 	     (let ((fn (first (asdf:make-build asdf-system
 					       :type :program 
 					       :monolithic t
-					       :epilogue-code code))))
+					       :epilogue-code code
+                                               :force t))))
 	       (alexandria:copy-file fn output-file :if-to-exists if-exists)
 	       (multiple-value-bind (stream exit-code process) (ext:run-program "/bin/chmod" (list "+x" (namestring output-file))
 										:input nil
