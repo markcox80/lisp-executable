@@ -15,6 +15,8 @@ function do_trial {
     fi
 
     example/example-program --help
+    example/example-program -b
+    example/example-program
 }
 
 function do_trial_both {
@@ -31,6 +33,8 @@ function do_trial_both {
     fi
 
     example/example-program --help
+    example/example-program -b
+    example/example-program
 
     echo --- run example/control-c-tester $1
     if ! [ -f example/control-c-tester ] ; then
