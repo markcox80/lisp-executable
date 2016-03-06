@@ -3,10 +3,13 @@
 	"LISP-EXECUTABLE"))
 (in-package "LISP-EXECUTABLE.EXAMPLE")
 
-(define-program example-program (&options help)
+(define-program example-program (&options boo help)
+  (declare (identifiers boo "boo" #\b))
   (cond
     (help
      (format t "Help has arrived."))
+    (boo
+     (format t "Boo!"))
     (t
      (format t "You are doomed.")))
   (terpri))
