@@ -42,7 +42,11 @@
 (defmethod wait-for-lisp-machine (lisp-machine)
   (ext:external-process-wait lisp-machine t))
 
-(uffi:def-function ("kill" %posix-kill)
+(#.(intern "DEF-FUNCTION"
+           (or (find-package "UFFI")
+               (find-package "FFI")
+               (error "Unable to find package UFFI or FFI in order to access POSIX's kill function.")))
+    ("kill" %posix-kill)
     ((pid-t :int)
      (signal :int))
   :returning :int)
