@@ -52,23 +52,40 @@
 
 (defmethod save-executable-using-code-and-die (code output-file &rest args &key &allow-other-keys)
   (setf args (remove-from-plist-unless-keys-are args '(:purify :impurify :init-file)))
-  (let ((function (eval `(lambda ()
-			   ,code))))
+  (let* ((bin-output-file (make-pathname :type "bin" :defaults output-file))
+         (function (eval `(lambda ()
+                            ,code))))
+    (with-open-file (out output-file :direction :output :if-exists :supersede)
+      (format out "#!/bin/sh
+set -e
+exec \"`dirname \"$0\"`/~A\" -- \"$@\"
+"
+              (make-pathname :defaults bin-output-file :directory nil)))
+    (let ((external-process (ccl:run-program "/bin/chmod" (list "+x" (namestring output-file))
+                                             :wait t)))
+      (multiple-value-bind (status exit-code) (ccl:external-process-status external-process)
+        (unless (and (eql status :exited)
+                     (zerop exit-code))
+          (error "Unable to execute chmod on shell script."))))
     (apply #'ccl:save-application
-	   output-file
+	   bin-output-file
 	   :toplevel-function function
 	   :prepend-kernel t	   
 	   :error-handler :quit
 	   args)))
 
 (defmethod command-line-arguments ()
-  (rest (ccl::command-line-arguments)))
+  ;; Position:
+  ;;   0   The executable name.  
+  ;;   1   The command line argument '--' added by the wrapper script.  
+  (cddr ccl:*command-line-argument-list*))
 
 (defmethod lisp-machine-exit (exit-status)
   (ccl:quit exit-status))
 
 (defmethod executable-files (output-file)
-  (list output-file))
+  (list output-file
+        (make-pathname :type "bin" :defaults output-file)))
 
 (defmethod do-with-control-c-handled (function)
   (let ((ccl:*break-hook* #'(lambda (condition hook)
