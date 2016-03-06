@@ -29,7 +29,7 @@
   :description "Tests for lisp-executable"
   :license "Simplified BSD License variant"
   :serial t
-  :depends-on ("lisp-executable" (:version "lisp-unit" "0.9.1"))
+  :depends-on ("lisp-executable" "lisp-unit")
   :components ((:module "tests"
 			:serial t
 			:components ((:file "packages")
