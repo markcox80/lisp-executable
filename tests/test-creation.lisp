@@ -35,9 +35,14 @@
   (terpri))
 
 (define-test create-executable
-  (let ((filename (merge-pathnames (make-pathname :name (string-downcase (symbol-name (gensym "lisp-executable-create-executable-test-filename")))
-						  :directory '(:relative "tests"))
-				   (directory-namestring (asdf:component-pathname (asdf:find-system "lisp-executable-tests"))))))
+  (let* ((executable-name (make-pathname :name (string-downcase
+                                                (symbol-name
+                                                 (gensym "lisp-executable-create-executable-test-filename")))
+                                         :directory '(:relative "tests")))
+         (directory (directory-namestring
+                     (asdf:component-pathname
+                      (asdf:find-system "lisp-executable-tests"))))
+         (filename (merge-pathnames executable-name directory)))
     (assert-false (probe-file filename))
     (with-output-to-string (lisp-executable:*lisp-machine-output-stream*)
       (unwind-protect
