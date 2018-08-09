@@ -86,6 +86,8 @@ START-NEW-LISP-MACHINE and SAVE-EXECUTABLE-USING-FUNCTION-AND-DIE."
 
   (let* ((complete-asdf-systems (determine-complete-set-of-asdf-systems (cons "lisp-executable" (list asdf-system))))
          (code-to-execute `(;; set up ASDF registry
+                            (require :asdf)
+
                             ,@(mapcar #'(lambda (system)
                                           `(pushnew ,(asdf:component-pathname system) asdf:*central-registry*))
                                       complete-asdf-systems)
