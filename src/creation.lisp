@@ -26,6 +26,76 @@
 
 (in-package "LISP-EXECUTABLE.CREATION")
 
+
+;;;; The function determine-complete-set-of-asdf-systems.
+;;;;
+;;;; This is a bit of a moving target because of ASDF.
+
+#+(and asdf2 (not asdf3))
+(progn
+  (defclass sticky-beak-op (asdf:operation)
+    ())
+
+  (defvar *all-systems* nil)
+
+  (defmethod asdf:component-depends-on ((op sticky-beak-op) component)
+    (declare (ignore op component))
+    (append (list (cons 'sticky-beak-op (asdf::component-load-dependencies component)))
+            (call-next-method)))
+
+  (defmethod asdf:perform ((op sticky-beak-op) (component asdf:source-file))
+    (declare (ignore op component)))
+
+  (defmethod asdf:perform ((op sticky-beak-op) (component asdf:system))
+    (declare (ignore op))
+    (pushnew component *all-systems*))
+
+  (defun determine-complete-set-of-asdf-systems (systems)
+    (let ((*all-systems* nil))
+      (map nil #'(lambda (system)
+                   (asdf:oos 'sticky-beak-op system :force t))
+           systems)
+      *all-systems*)))
+
+#+asdf3
+(progn
+  (defclass sticky-beak-op (asdf:sideway-operation)
+    ())
+
+  #+(and asdf3 (not asdf3.2))
+  (defun asdf-actions (system)
+    (asdf::plan-actions (asdf:make-plan 'asdf:sequential-plan
+                                        (asdf:make-operation 'sticky-beak-op)
+                                        (asdf:find-system system)
+                                        :forced t)))
+
+  #+asdf3.2
+  (defun asdf-actions (system)
+    (asdf::with-asdf-session (:override t)
+      (asdf::plan-actions (asdf:make-plan 'asdf:sequential-plan
+                                          (asdf:make-operation 'sticky-beak-op)
+                                          (asdf:find-system system)
+                                          :forcing (asdf/forcing:make-forcing :force :all)))))
+
+  (defun determine-complete-set-of-asdf-systems (systems)
+    (labels ((perform (system)
+               (loop
+                 with rv = nil
+                 for (op . component) in (asdf-actions system)
+                 when (typep component 'asdf:system)
+                   do
+                      (unless (find component rv)
+                        (alexandria:appendf rv (list component)))
+                 finally (return rv))))
+      (let* ((rv (reduce #'(lambda (current next)
+                             (append current next))
+                         systems
+                         :key #'perform
+                         :initial-value nil)))
+        rv))))
+
+;;;; Creation protocol and implementation
+
 (defvar *lisp-machine-output-stream* *standard-output*)
 
 (defun remove-from-plist-unless-keys-are (plist valid-keys &key (test #'eql))
@@ -52,29 +122,6 @@ START-NEW-LISP-MACHINE and SAVE-EXECUTABLE-USING-FUNCTION-AND-DIE."
   (defmacro with-control-c-handled (&body body)
     `(do-with-control-c-handled #'(lambda ()
                                     ,@body))))
-
-(defvar *all-systems* nil)
-(defclass sticky-beak-op (#-asdf3 asdf:operation
-                          #+asdf3 asdf:downward-operation)
-  ())
-
-(defmethod asdf:component-depends-on ((op sticky-beak-op) component)
-  (append (list (cons 'sticky-beak-op (asdf::component-load-dependencies component)))
-          (call-next-method)))
-
-(defmethod asdf:perform ((op sticky-beak-op) (component t))
-  (declare (ignore op component)))
-
-(defmethod asdf:perform ((op sticky-beak-op) (component asdf:system))
-  (declare (ignore op))
-  (pushnew component *all-systems*))
-
-(defun determine-complete-set-of-asdf-systems (systems)
-  (let ((*all-systems* nil))
-    (map nil #'(lambda (system)
-                 (asdf:oos 'sticky-beak-op system :force t))
-         systems)
-    *all-systems*))
 
 (defun create-executable (program-name output-file &rest args &key asdf-system (if-exists :error) &allow-other-keys)
   (when (probe-file output-file)
