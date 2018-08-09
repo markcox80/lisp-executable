@@ -32,11 +32,11 @@
   "Utility function that helps with implementing
 START-NEW-LISP-MACHINE and SAVE-EXECUTABLE-USING-FUNCTION-AND-DIE."
   (loop
-     :for (key value) :on plist :by #'cddr
-     :append
-       (if (member key valid-keys :test test)
-           (list key value)
-           nil)))
+    :for (key value) :on plist :by #'cddr
+    :append
+    (if (member key valid-keys :test test)
+        (list key value)
+        nil)))
 
 (defgeneric start-new-lisp-machine (&rest args &key &allow-other-keys))
 (defgeneric lisp-machine-input (lisp-machine))
@@ -90,20 +90,20 @@ START-NEW-LISP-MACHINE and SAVE-EXECUTABLE-USING-FUNCTION-AND-DIE."
                                           `(pushnew ,(asdf:component-pathname system) asdf:*central-registry*))
                                       complete-asdf-systems)
 
-                              ;; load the needed systems
-                              ,@(mapcar #'(lambda (system)
-                                            `(asdf:load-system ,(asdf:component-name system)))
-                                        complete-asdf-systems)
+                            ;; load the needed systems
+                            ,@(mapcar #'(lambda (system)
+                                          `(asdf:load-system ,(asdf:component-name system)))
+                                      complete-asdf-systems)
 
-                              ;; assign the command line arguments reader
-                              (setf lisp-executable:*command-line-arguments-reader* ',lisp-executable:*command-line-arguments-reader*)
+                            ;; assign the command line arguments reader
+                            (setf lisp-executable:*command-line-arguments-reader* ',lisp-executable:*command-line-arguments-reader*)
 
-                              (before-executable-creation ',program-name)
+                            (before-executable-creation ',program-name)
 
-                              ;; create the executable
-                              (apply #'lisp-executable.creation:save-executable-and-die ',program-name ,output-file
-                                     ,@args
-                                     (executable-options ',program-name)))))
+                            ;; create the executable
+                            (apply #'lisp-executable.creation:save-executable-and-die ',program-name ,output-file
+                                   ,@args
+                                   (executable-options ',program-name)))))
     (let ((external-lisp-machine (apply #'start-new-lisp-machine (append args (executable-options program-name)))))
       (handler-case (progn
                       (with-open-stream (machine-input (lisp-machine-input external-lisp-machine))
@@ -132,9 +132,9 @@ START-NEW-LISP-MACHINE and SAVE-EXECUTABLE-USING-FUNCTION-AND-DIE."
                                                                    (if (integerp rv)
                                                                        (lisp-machine-exit rv)
                                                                        (lisp-machine-exit 0))))
-                                                  (error (c)
-                                                    (format *error-output* "~&Unhandled error: ~A~%" c)
-                                                    (lisp-machine-exit 1)))
+                                                   (error (c)
+                                                     (format *error-output* "~&Unhandled error: ~A~%" c)
+                                                     (lisp-machine-exit 1)))
                                                  (error "LISP-EXECUTABLE.CREATION::LISP-MACHINE-EXIT NOT IMPLEMENTED PROPERLY."))
          output-file
          args))
