@@ -35,8 +35,8 @@ START-NEW-LISP-MACHINE and SAVE-EXECUTABLE-USING-FUNCTION-AND-DIE."
      :for (key value) :on plist :by #'cddr
      :append
        (if (member key valid-keys :test test)
-	   (list key value)
-	   nil)))
+           (list key value)
+           nil)))
 
 (defgeneric start-new-lisp-machine (&rest args &key &allow-other-keys))
 (defgeneric lisp-machine-input (lisp-machine))
@@ -51,7 +51,7 @@ START-NEW-LISP-MACHINE and SAVE-EXECUTABLE-USING-FUNCTION-AND-DIE."
 (eval-when (:compile-toplevel :load-toplevel :execute)
   (defmacro with-control-c-handled (&body body)
     `(do-with-control-c-handled #'(lambda ()
-				    ,@body))))
+                                    ,@body))))
 
 (defvar *all-systems* nil)
 (defclass sticky-beak-op (#-asdf3 asdf:operation
@@ -60,7 +60,7 @@ START-NEW-LISP-MACHINE and SAVE-EXECUTABLE-USING-FUNCTION-AND-DIE."
 
 (defmethod asdf:component-depends-on ((op sticky-beak-op) component)
   (append (list (cons 'sticky-beak-op (asdf::component-load-dependencies component)))
-	  (call-next-method)))
+          (call-next-method)))
 
 (defmethod asdf:perform ((op sticky-beak-op) (component t))
   (declare (ignore op component)))
@@ -72,8 +72,8 @@ START-NEW-LISP-MACHINE and SAVE-EXECUTABLE-USING-FUNCTION-AND-DIE."
 (defun determine-complete-set-of-asdf-systems (systems)
   (let ((*all-systems* nil))
     (map nil #'(lambda (system)
-		 (asdf:oos 'sticky-beak-op system :force t))
-	 systems)
+                 (asdf:oos 'sticky-beak-op system :force t))
+         systems)
     *all-systems*))
 
 (defun create-executable (program-name output-file &rest args &key asdf-system (if-exists :error) &allow-other-keys)
@@ -85,38 +85,38 @@ START-NEW-LISP-MACHINE and SAVE-EXECUTABLE-USING-FUNCTION-AND-DIE."
        (delete-file output-file))))
 
   (let* ((complete-asdf-systems (determine-complete-set-of-asdf-systems (cons "lisp-executable" (list asdf-system))))
-	 (code-to-execute `(;; set up ASDF registry
-			    ,@(mapcar #'(lambda (system)
-					  `(pushnew ,(asdf:component-pathname system) asdf:*central-registry*))
-				      complete-asdf-systems)
-			      
+         (code-to-execute `(;; set up ASDF registry
+                            ,@(mapcar #'(lambda (system)
+                                          `(pushnew ,(asdf:component-pathname system) asdf:*central-registry*))
+                                      complete-asdf-systems)
+
                               ;; load the needed systems
-			      ,@(mapcar #'(lambda (system)
-					    `(asdf:load-system ,(asdf:component-name system)))
-					complete-asdf-systems)
-			      
-			      ;; assign the command line arguments reader
-			      (setf lisp-executable:*command-line-arguments-reader* ',lisp-executable:*command-line-arguments-reader*)
+                              ,@(mapcar #'(lambda (system)
+                                            `(asdf:load-system ,(asdf:component-name system)))
+                                        complete-asdf-systems)
+
+                              ;; assign the command line arguments reader
+                              (setf lisp-executable:*command-line-arguments-reader* ',lisp-executable:*command-line-arguments-reader*)
 
                               (before-executable-creation ',program-name)
-			      
-			      ;; create the executable
-			      (apply #'lisp-executable.creation:save-executable-and-die ',program-name ,output-file
+
+                              ;; create the executable
+                              (apply #'lisp-executable.creation:save-executable-and-die ',program-name ,output-file
                                      ,@args
                                      (executable-options ',program-name)))))
     (let ((external-lisp-machine (apply #'start-new-lisp-machine (append args (executable-options program-name)))))
       (handler-case (progn
-		      (with-open-stream (machine-input (lisp-machine-input external-lisp-machine))
-			(let ((*package* (find-package "CL-USER")))
-			  (map nil #'(lambda (sexp)
-				       (write sexp :stream machine-input)
-				       (terpri machine-input)
-				       (force-output machine-input))
-			       code-to-execute)))
-		      (wait-for-lisp-machine external-lisp-machine))
-	(error (c)
-	  (format *error-output* "Error creating executable: ~A" c)
-	  (kill-lisp-machine external-lisp-machine)))
+                      (with-open-stream (machine-input (lisp-machine-input external-lisp-machine))
+                        (let ((*package* (find-package "CL-USER")))
+                          (map nil #'(lambda (sexp)
+                                       (write sexp :stream machine-input)
+                                       (terpri machine-input)
+                                       (force-output machine-input))
+                               code-to-execute)))
+                      (wait-for-lisp-machine external-lisp-machine))
+        (error (c)
+          (format *error-output* "Error creating executable: ~A" c)
+          (kill-lisp-machine external-lisp-machine)))
       output-file)))
 
 (defun save-executable-and-die (program-name output-file &rest args &key (if-exists :error) &allow-other-keys)
@@ -127,14 +127,14 @@ START-NEW-LISP-MACHINE and SAVE-EXECUTABLE-USING-FUNCTION-AND-DIE."
       (:supersede)))
 
   (apply #'save-executable-using-code-and-die `(progn
-						 (handler-case (with-control-c-handled
-								 (let ((rv (program-apply ',program-name (command-line-arguments))))
-								   (if (integerp rv)
-								       (lisp-machine-exit rv)
-								       (lisp-machine-exit 0))))
-						  (error (c)
-						    (format *error-output* "~&Unhandled error: ~A~%" c)
-						    (lisp-machine-exit 1)))
-						 (error "LISP-EXECUTABLE.CREATION::LISP-MACHINE-EXIT NOT IMPLEMENTED PROPERLY."))
-	 output-file
-	 args))
+                                                 (handler-case (with-control-c-handled
+                                                                 (let ((rv (program-apply ',program-name (command-line-arguments))))
+                                                                   (if (integerp rv)
+                                                                       (lisp-machine-exit rv)
+                                                                       (lisp-machine-exit 0))))
+                                                  (error (c)
+                                                    (format *error-output* "~&Unhandled error: ~A~%" c)
+                                                    (lisp-machine-exit 1)))
+                                                 (error "LISP-EXECUTABLE.CREATION::LISP-MACHINE-EXIT NOT IMPLEMENTED PROPERLY."))
+         output-file
+         args))
